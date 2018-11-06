@@ -334,6 +334,7 @@ export const createAppStore = (
 }
 
 const hasMethod = (obj: {}, name: string) => {
+    // raw! getting into Object methods here
 	const desc = Object.getOwnPropertyDescriptor(obj, name)
 	return !!desc && typeof desc.value === "function"
 }
