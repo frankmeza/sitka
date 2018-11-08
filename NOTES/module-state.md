@@ -1,1 +1,0 @@
-type ModuleState = {} | undefined | null

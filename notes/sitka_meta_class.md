@@ -1,3 +1,5 @@
+# SitkaMeta (class)
+
 ```typescript
 export class SitkaMeta {
 	public readonly defaultState: {}

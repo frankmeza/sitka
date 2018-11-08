@@ -1,4 +1,4 @@
-# `export interface SagaMeta {}`
+# SagaMeta
 
 ```typescript
 export interface SagaMeta {
