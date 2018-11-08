@@ -10,20 +10,21 @@ import {
 } from "redux"
 import { SagaMiddleware } from "redux-saga"
 import createSagaMiddleware from "redux-saga"
+import { snakeCase } from "lodash"
 
-export const createStateChangeKey = (module: string) =>
-    `module_${module}_change_state`.toUpperCase()
+export const createStateChangeKey = (module: string): string =>
+    `module_${snakeCase(module)}_change_state`.toUpperCase()
 
-export const createHandlerKey = (module: string, handler: string) =>
+export const createHandlerKey = (module: string, handler: string): string =>
     `module_${module}_${handler}`.toUpperCase()
 
-export const hasMethod = (obj: {}, name: string) => {
+export const hasMethod = (obj: {}, name: string): boolean => {
     // raw! getting into Object methods here
     const desc = Object.getOwnPropertyDescriptor(obj, name)
     return !!desc && typeof desc.value === "function"
 }
 
-export const getInstanceMethodNames = (obj: {}, stop: {}) => {
+export const getInstanceMethodNames = (obj: {}, stop: {}): string[] => {
     const array: string[] = []
     let proto = Object.getPrototypeOf(obj)
 

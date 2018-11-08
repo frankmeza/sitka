@@ -17,18 +17,18 @@ export abstract class SitkaModule<MODULE_STATE extends ModuleState, MODULES> {
     public abstract defaultState: MODULE_STATE
 
     protected createAction(
-        v: Partial<MODULE_STATE>
+        valueInState: Partial<MODULE_STATE>
     ): SitkaModuleAction<MODULE_STATE> {
-        const type = createStateChangeKey(this.reduxKey())
+        const type: string = createStateChangeKey(this.reduxKey())
 
-        if (!v) {
+        if (!valueInState) {
             return { type, [type]: null }
         }
 
-        if (typeof v !== "object") {
-            return { type, [type]: v }
+        if (typeof valueInState !== "object") {
+            return { type, [type]: valueInState }
         } else {
-            return Object.assign({ type }, v)
+            return Object.assign({ type }, valueInState)
         }
     }
 
