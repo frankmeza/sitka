@@ -1,9 +1,5 @@
 import {
     Action,
-    applyMiddleware,
-    combineReducers,
-    createStore,
-    DeepPartial,
     Dispatch,
     Middleware,
     ReducersMapObject,
