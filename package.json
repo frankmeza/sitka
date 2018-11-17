@@ -19,7 +19,10 @@
         "transform": {
             "\\.(ts|tsx)$": "<rootDir>/node_modules/ts-jest/preprocessor.js"
         },
-        "testRegex": "/__tests__/*_test\\.(ts|tsx|js)$"
+        "testRegex": "/__tests__/",
+        "testPathIgnorePatterns": [
+            "/test_data/"
+        ]
     },
     "scripts": {
         "prepublish": "tsc",
