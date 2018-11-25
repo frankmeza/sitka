@@ -1,7 +1,9 @@
 import { Action, Middleware } from "redux"
 
-import { SitkaModuleAction } from "../../src/sitka_module_action"
-import { SagaMeta } from "../../src/saga_meta"
+import {
+    SagaMeta,
+    SitkaModuleAction,
+} from "../../src/interfaces_and_types"
 
 import CounterModule from "./test_counter_module"
 import { CounterState } from "./test_index"
