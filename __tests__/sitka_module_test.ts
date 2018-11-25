@@ -84,7 +84,7 @@ describe("CounterModule", () => {
         test("returns Middleware[]", () => {
             // defaults to returning []
             const expected: Middleware[] = []
-            expect(t.testProvideMiddleware()).toEqual([])
+            expect(t.testProvideMiddleware()).toEqual(expected)
         })
     })
 
@@ -94,8 +94,7 @@ describe("CounterModule", () => {
         test("returns SagaMeta[]", () => {
             // defaults to returning []
             const expected: SagaMeta[] = []
-            expect(t.testProvideSubscriptions()).toEqual([])
-
+            expect(t.testProvideSubscriptions()).toEqual(expected)
         })
     })
 })
