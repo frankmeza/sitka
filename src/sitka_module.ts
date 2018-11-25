@@ -1,5 +1,11 @@
 import { Action, Middleware } from "redux"
-import { ModuleState, SagaMeta, SitkaModuleAction } from "./interfaces_and_types"
+
+import {
+    ModuleState,
+    SagaMeta,
+    SitkaModuleAction,
+} from "./interfaces_and_types"
+
 import { createStateChangeKey } from "./utils"
 
 export abstract class SitkaModule<MODULE_STATE extends ModuleState, MODULES> {

@@ -7,8 +7,10 @@ import {
     createStore,
     combineReducers,
 } from "redux"
+
 import { createLogger } from "redux-logger"
 import createSagaMiddleware, { SagaMiddleware } from "redux-saga"
+
 import { snakeCase } from "lodash"
 
 export const createStateChangeKey = (module: string): string =>
