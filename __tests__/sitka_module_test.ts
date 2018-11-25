@@ -64,4 +64,37 @@ describe("CounterModule", () => {
             expect(t.testSetState()).toEqual(expected)
         })
     })
+
+    // this method allows this module to provide middleware
+    // to the application at large
+    describe("provideMiddleware()", () => {
+        describe("returns Middleware[]", () => {
+            // return [
+            //     this.createSubscription("MODULE_PETS_CHANGE_STATE", function* (action: {}) {
+            //         console.log(moduleName, "subscription heard -->", action)
+            //     }),
+
+            //     this.createSubscription("INCREMENT", function* (action: IncrementAction) {
+            //         console.log(moduleName, "subscription heard -->", action)
+            //     }),
+            // ]
+        })
+    })
+
+    // this method allows this module to listen for named actions,
+    // then run a callback function immediately afterwards
+    describe("provideSubscriptions()", () => {
+        describe("returns SagaMeta[]", () => {
+            // const { moduleName } = this
+
+            // // these don't have to be inline here, they are for convenience
+            // return [
+            //     (store: MiddlewareAPI<Dispatch, AppState>) => (next: Function) => (action: Action) => {
+            //         console.log(moduleName, "middleware heard -->", action)
+            //         console.log(moduleName, "current state:", store.getState().pets)
+            //         return next(action)
+            //     },
+            // ]
+        })
+    })
 })
