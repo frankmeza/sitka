@@ -32,6 +32,7 @@
         "@commitlint/cli": "^7.1.2",
         "@commitlint/config-angular": "^7.1.2",
         "@types/jest": "20.0.4",
+        "@types/lodash": "^4.14.118",
         "git-format-staged": "^2.1.0",
         "husky": "^0.14.3",
         "jest": "20.0.4",
