@@ -19,11 +19,14 @@ import {
     getInstanceMethodNames,
 } from "./utils"
 
-import { AppStoreCreator } from "./app_store_creator"
-import { ModuleState } from "./module_state"
-import { SagaMeta } from "./saga_meta"
-import { SitkaAction } from "./sitka_action"
-import { SitkaMeta } from "./sitka_meta"
+import {
+    AppStoreCreator,
+    ModuleState,
+    SagaMeta,
+    SitkaAction,
+    SitkaMeta,
+} from "./interfaces_and_types"
+
 import { SitkaModule } from "./sitka_module"
 
 export class Sitka<MODULES = {}> {
