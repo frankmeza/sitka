@@ -36,8 +36,8 @@ export abstract class SitkaModule<MODULE_STATE extends ModuleState, MODULES> {
         return this.createAction(state)
     }
 
-    // this is used inside of each array item in
-    // this.provideMiddleware()
+    // this is used inside of each array
+    // item in this.provideMiddleware()
     protected createSubscription(
         actionType: string,
         handler: Function,
