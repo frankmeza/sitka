@@ -4,10 +4,12 @@
 const createStateChangeKey = (module: string) =>
     `module_${module}_change_state`.toUpperCase()
 ```
+
 ```typescript
 const createHandlerKey = (module: string, handler: string) =>
 	`module_${module}_${handler}`.toUpperCase()
 ```
+
 ```typescript
 export const createAppStore = (
 	intialState: {} = {},
@@ -42,6 +44,7 @@ export const createAppStore = (
 	return store
 }
 ```
+
 ```typescript
 const hasMethod = (obj: {}, name: string) => {
     // raw! getting into Object methods here
@@ -49,6 +52,7 @@ const hasMethod = (obj: {}, name: string) => {
 	return !!desc && typeof desc.value === "function"
 }
 ```
+
 ```typescript
 const getInstanceMethodNames = (obj: {}, stop: {}) => {
 	const array: string[] = []

@@ -74,6 +74,12 @@ export abstract class SitkaModule<MODULE_STATE extends ModuleState, MODULES> {
     }
 ```
 
+### Usage Example
+
+```typescript
+// show example from pet module here, with explanation
+```
+
 ## `provideMiddleware`
 
 ```typescript
