@@ -1,4 +1,3 @@
-import { createLogger } from "redux-logger"
 import {
     DeepPartial,
     Middleware,
@@ -8,8 +7,8 @@ import {
     createStore,
     combineReducers,
 } from "redux"
-import { SagaMiddleware } from "redux-saga"
-import createSagaMiddleware from "redux-saga"
+import { createLogger } from "redux-logger"
+import createSagaMiddleware, { SagaMiddleware } from "redux-saga"
 import { snakeCase } from "lodash"
 
 export const createStateChangeKey = (module: string): string =>
