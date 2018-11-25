@@ -1,10 +1,9 @@
-import { SitkaModuleAction } from "../src/sitka_module_action"
+import { SagaMeta, SitkaModuleAction } from "../src/interfaces_and_types"
 import { CounterState } from "./test_data/test_index"
 import { Action, Middleware } from "redux"
 
 import CounterModule from "./test_data/test_counter_module"
 import TestSitkaModule from "./test_data/test_sitka_module"
-import { SagaMeta } from "../src/saga_meta";
 
 type TestSitkaModuleAction = SitkaModuleAction<CounterState>
 
