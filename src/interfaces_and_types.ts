@@ -1,4 +1,5 @@
 import { Action, Middleware, ReducersMapObject, Store } from "redux"
+import { CallEffectFn } from "redux-saga/effects"
 
 export type AppStoreCreator = (sitaMeta: SitkaMeta) => Store
 
@@ -25,3 +26,15 @@ export class SitkaMeta {
 }
 
 export type SitkaModuleAction<T> = Partial<T> & { type: string } | Action
+
+export interface GeneratorContext {
+    readonly handlerKey: string
+    readonly fn: CallEffectFn<any>
+    readonly context: {}
+}
+
+export const handlerOriginalFunctionMap = new Map<Function, GeneratorContext>()
+
+export interface SitkaOptions {
+    readonly log?: boolean
+}
