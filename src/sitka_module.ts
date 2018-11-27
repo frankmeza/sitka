@@ -26,7 +26,7 @@ export abstract class SitkaModule<MODULE_STATE extends ModuleState, MODULES> {
     protected createAction(
         v: Partial<MODULE_STATE>,
     ): SitkaModuleAction<MODULE_STATE> {
-        const type = createStateChangeKey(this.reduxKey())
+        const type: string = createStateChangeKey(this.reduxKey())
 
         if (!v) {
             return { type, [type]: null }
