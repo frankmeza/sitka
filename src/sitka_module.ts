@@ -39,6 +39,10 @@ export abstract class SitkaModule<MODULE_STATE extends ModuleState, MODULES> {
         }
     }
 
+    protected resetState(): Action {
+        return this.setState(this.defaultState)
+    }
+
     protected setState(state: MODULE_STATE): Action {
         return this.createAction(state)
     }
