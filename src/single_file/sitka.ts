@@ -100,7 +100,7 @@ export abstract class SitkaModule<MODULE_STATE extends ModuleState, MODULES> {
         const generatorContext: GeneratorContext = handlerOriginalFunctionMap.get(fn)
         return yield apply(generatorContext.context, generatorContext.fn, <any> rest)
     }
- }
+}
 
 export interface SagaMeta {
     // tslint:disable-next-line:no-any
@@ -349,7 +349,7 @@ export class Sitka<MODULES = {}> {
         if (!!dispatch) {
             dispatch(action)
         } else {
-            alert("no dispatch")
+            // alert("no dispatch")
         }
     }
 }
