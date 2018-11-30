@@ -6,7 +6,7 @@
     "files": [
         "dist/**/*"
     ],
-    "main": "dist/sitka.js",
+    "main": "dist/index.js",
     "prettier": {
         "semi": false
     },
@@ -21,7 +21,8 @@
         },
         "testRegex": "/__tests__/",
         "testPathIgnorePatterns": [
-            "/test_data/"
+            "/test_data/",
+            ".history"
         ]
     },
     "scripts": {
