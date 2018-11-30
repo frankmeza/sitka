@@ -40,14 +40,14 @@ export default class TestSitkaModule extends CounterModule {
     public testCreateSubscriptionWithString(): SagaMeta {
         return this.createSubscription(
             "MODULE_COUNTER_CHANGE_STATE",
-            this.testCallbackFunction
+            this.testCallbackFunction,
         )
     }
 
     public testCreateSubscriptionWithFunction(): SagaMeta {
         return this.createSubscription(
             this.handleIncrement,
-            this.testCallbackFunction
+            this.testCallbackFunction,
         )
     }
 
