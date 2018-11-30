@@ -95,18 +95,16 @@ describe("CounterModule", () => {
         })
 
         test("receives actionTarget Function, handler function; returns SagaMeta", () => {
-            const testFn: Function = () => "return string"
-
             const testGenContext: GeneratorContext = {
                 handlerKey: "MODULE_COUNTER_HANDLE_INCREMENT",
-                fn: testFn,
+                fn: t.handleIncrement,
                 context: {},
             }
 
-            handlerOriginalFunctionMap.set(testFn, testGenContext)
+            handlerOriginalFunctionMap.set(t.handleIncrement, testGenContext)
 
             const expected: SagaMeta = {
-                "name": "MODULE_COUNTER_CHANGE_STATE",
+                "name": "MODULE_COUNTER_HANDLE_INCREMENT",
                 "handler": t.testCallbackFunction,
                 "direct": true,
             }
