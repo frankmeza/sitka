@@ -1,4 +1,10 @@
-import { SagaMeta, SitkaModuleAction } from "../src/interfaces_and_types"
+import {
+    SagaMeta,
+    SitkaModuleAction,
+    handlerOriginalFunctionMap,
+    GeneratorContext,
+} from "../src/interfaces_and_types"
+
 import { CounterState } from "./test_data/test_index"
 import { Action, Middleware } from "redux"
 
@@ -54,6 +60,18 @@ describe("CounterModule", () => {
         })
     })
 
+    describe("protected resetState()", () => {
+        test("receives no parameters, resets MODULE_STATE to default; returns Redux Action", () => {
+            const expected: TestAction = {
+                "type": "MODULE_COUNTER_CHANGE_STATE",
+                "counter": 0,
+            }
+
+            expect(t.testResetState()).toEqual(expected)
+
+        })
+    })
+
     describe("protected setState()", () => {
         test("receives full module state; returns Redux Action", () => {
             const expected: TestAction = {
@@ -66,14 +84,34 @@ describe("CounterModule", () => {
     })
 
     describe("protected createSubscription()", () => {
-        test("receives actionType string, handler function; returns SagaMeta", () => {
+        test("receives actionTarget string, handler function; returns SagaMeta", () => {
             const expected: SagaMeta = {
                 "name": "MODULE_COUNTER_CHANGE_STATE",
                 "handler": t.testCallbackFunction,
                 "direct": true,
             }
 
-            expect(t.testCreateSubscription()).toEqual(expected)
+            expect(t.testCreateSubscriptionWithString()).toEqual(expected)
+        })
+
+        test("receives actionTarget Function, handler function; returns SagaMeta", () => {
+            const testFn: Function = () => "return string"
+
+            const testGenContext: GeneratorContext = {
+                handlerKey: "MODULE_COUNTER_HANDLE_INCREMENT",
+                fn: testFn,
+                context: {},
+            }
+
+            handlerOriginalFunctionMap.set(testFn, testGenContext)
+
+            const expected: SagaMeta = {
+                "name": "MODULE_COUNTER_CHANGE_STATE",
+                "handler": t.testCallbackFunction,
+                "direct": true,
+            }
+
+            expect(t.testCreateSubscriptionWithFunction()).toEqual(expected)
         })
     })
 
