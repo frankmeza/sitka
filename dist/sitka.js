@@ -37,70 +37,19 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
-var redux_1 = require("redux");
-var redux_logger_1 = require("redux-logger");
-var redux_saga_1 = __importDefault(require("redux-saga"));
 var effects_1 = require("redux-saga/effects");
-var createStateChangeKey = function (module) { return ("module_" + module + "_change_state").toUpperCase(); };
-var createHandlerKey = function (module, handler) { return ("module_" + module + "_" + handler).toUpperCase(); };
-var SitkaModule = /** @class */ (function () {
-    function SitkaModule() {
-    }
-    // by default, the redux key is same as the moduleName
-    SitkaModule.prototype.reduxKey = function () {
-        return this.moduleName;
-    };
-    SitkaModule.prototype.createAction = function (v) {
-        var _a, _b;
-        var type = createStateChangeKey(this.reduxKey());
-        if (!v) {
-            return _a = { type: type }, _a[type] = null, _a;
-        }
-        if (typeof v !== "object") {
-            return _b = { type: type }, _b[type] = v, _b;
-        }
-        else {
-            return Object.assign({ type: type }, v);
-        }
-    };
-    SitkaModule.prototype.setState = function (state) {
-        return this.createAction(state);
-    };
-    SitkaModule.prototype.createSubscription = function (actionType, handler) {
-        return {
-            name: actionType,
-            handler: handler,
-            direct: true,
-        };
-    };
-    SitkaModule.prototype.provideMiddleware = function () {
-        return [];
-    };
-    SitkaModule.prototype.provideSubscriptions = function () {
-        return [];
-    };
-    return SitkaModule;
-}());
-exports.SitkaModule = SitkaModule;
-// tslint:disable-next-line:max-classes-per-file
-var SitkaMeta = /** @class */ (function () {
-    function SitkaMeta() {
-    }
-    return SitkaMeta;
-}());
-exports.SitkaMeta = SitkaMeta;
-// tslint:disable-next-line:max-classes-per-file
+var utils_1 = require("./utils");
+var interfaces_and_types_1 = require("./interfaces_and_types");
 var Sitka = /** @class */ (function () {
-    function Sitka() {
+    function Sitka(sitkaOptions) {
         // tslint:disable-next-line:no-any
         this.sagas = [];
+        this.forks = [];
         // tslint:disable-next-line:no-any
         this.reducersToCombine = {};
         this.middlewareToAdd = [];
+        this.sitkaOptions = sitkaOptions;
         this.doDispatch = this.doDispatch.bind(this);
         this.createStore = this.createStore.bind(this);
         this.createRoot = this.createRoot.bind(this);
@@ -132,7 +81,13 @@ var Sitka = /** @class */ (function () {
         else {
             // use own appstore creator
             var meta = this.createSitkaMeta();
-            var store = exports.createAppStore(meta.defaultState, [meta.reducersToCombine], meta.middleware, meta.sagaRoot);
+            var store = utils_1.createAppStore({
+                initialState: meta.defaultState,
+                reducersToCombine: [meta.reducersToCombine],
+                middleware: meta.middleware,
+                sagaRoot: meta.sagaRoot,
+                log: this.sitkaOptions && this.sitkaOptions.log === true,
+            });
             this.dispatch = store.dispatch;
             return store;
         }
@@ -140,63 +95,78 @@ var Sitka = /** @class */ (function () {
     Sitka.prototype.register = function (instances) {
         var _this = this;
         instances.forEach(function (instance) {
-            var methodNames = getInstanceMethodNames(instance, Object.prototype);
+            var methodNames = utils_1.getInstanceMethodNames(instance, Object.prototype);
             var handlers = methodNames.filter(function (m) { return m.indexOf("handle") === 0; });
-            var subscribers = instance.provideSubscriptions();
             var moduleName = instance.moduleName;
-            var _a = _this, middlewareToAdd = _a.middlewareToAdd, sagas = _a.sagas, reducersToCombine = _a.reducersToCombine, dispatch = _a.doDispatch;
+            var _a = _this, middlewareToAdd = _a.middlewareToAdd, sagas = _a.sagas, forks = _a.forks, reducersToCombine = _a.reducersToCombine, dispatch = _a.doDispatch;
             instance.modules = _this.getModules();
-            sagas.push.apply(sagas, subscribers);
             middlewareToAdd.push.apply(middlewareToAdd, instance.provideMiddleware());
+            instance.provideForks().forEach(function (f) {
+                forks.push(f.bind(instance));
+            });
             handlers.forEach(function (s) {
                 // tslint:disable:ban-types
                 var original = instance[s]; // tslint:disable:no-any
+                var handlerKey = utils_1.createHandlerKey(moduleName, s);
                 function patched() {
                     var args = arguments;
                     var action = {
                         _args: args,
                         _moduleId: moduleName,
-                        type: createHandlerKey(moduleName, s),
+                        type: handlerKey,
                     };
                     dispatch(action);
                 }
                 sagas.push({
                     handler: original,
-                    name: createHandlerKey(moduleName, s),
+                    name: utils_1.createHandlerKey(moduleName, s),
                 });
                 // tslint:disable-next-line:no-any
                 instance[s] = patched;
+                interfaces_and_types_1.handlerOriginalFunctionMap.set(patched, {
+                    handlerKey: handlerKey,
+                    fn: original,
+                    context: instance,
+                });
             });
-            // create reducer
-            var reduxKey = instance.reduxKey();
-            var defaultState = instance.defaultState;
-            var actionType = createStateChangeKey(reduxKey);
-            reducersToCombine[reduxKey] = function (state, action) {
-                if (state === void 0) { state = defaultState; }
-                if (action.type !== actionType) {
-                    return state;
-                }
-                var type = createStateChangeKey(moduleName);
-                var newState = Object.keys(action)
-                    .filter(function (k) { return k !== "type"; })
-                    .reduce(function (acc, k) {
-                    var _a, _b;
-                    var val = action[k];
-                    if (k === type) {
-                        return val;
+            if (instance.defaultState !== undefined) {
+                // create reducer
+                var reduxKey = instance.reduxKey();
+                var defaultState_1 = instance.defaultState;
+                var actionType_1 = utils_1.createStateChangeKey(reduxKey);
+                reducersToCombine[reduxKey] = function (state, action) {
+                    if (state === void 0) { state = defaultState_1; }
+                    if (action.type !== actionType_1) {
+                        return state;
                     }
-                    if (val === null || typeof val === "undefined") {
-                        return Object.assign(acc, (_a = {},
-                            _a[k] = null,
-                            _a));
-                    }
-                    return Object.assign(acc, (_b = {},
-                        _b[k] = val,
-                        _b));
-                }, Object.assign({}, state));
-                return newState;
-            };
+                    var type = utils_1.createStateChangeKey(moduleName);
+                    var newState = Object.keys(action)
+                        .filter(function (k) { return k !== "type"; })
+                        .reduce(function (acc, k) {
+                        var _a, _b;
+                        var val = action[k];
+                        if (k === type) {
+                            return val;
+                        }
+                        if (val === null || typeof val === "undefined") {
+                            return Object.assign(acc, (_a = {},
+                                _a[k] = null,
+                                _a));
+                        }
+                        return Object.assign(acc, (_b = {},
+                            _b[k] = val,
+                            _b));
+                    }, Object.assign({}, state));
+                    return newState;
+                };
+            }
             _this.registeredModules[moduleName] = instance;
+        });
+        // do subscribers after all has been registered
+        instances.forEach(function (instance) {
+            var sagas = _this.sagas;
+            var subscribers = instance.provideSubscriptions();
+            sagas.push.apply(sagas, subscribers);
         });
     };
     Sitka.prototype.getDefaultState = function () {
@@ -209,9 +179,9 @@ var Sitka = /** @class */ (function () {
         }, {});
     };
     Sitka.prototype.createRoot = function () {
-        var _a = this, sagas = _a.sagas, registeredModules = _a.registeredModules;
+        var _a = this, sagas = _a.sagas, forks = _a.forks, registeredModules = _a.registeredModules;
         function root() {
-            var toYield, _loop_1, i;
+            var toYield, _loop_1, i, i, f, item;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -262,9 +232,15 @@ var Sitka = /** @class */ (function () {
                     case 3:
                         i++;
                         return [3 /*break*/, 1];
-                    case 4: 
-                    /* tslint:enable */
-                    return [4 /*yield*/, effects_1.all(toYield)];
+                    case 4:
+                        // forks
+                        for (i = 0; i < forks.length; i++) {
+                            f = forks[i];
+                            item = effects_1.fork(f);
+                            toYield.push(item);
+                        }
+                        /* tslint:enable */
+                        return [4 /*yield*/, effects_1.all(toYield)];
                     case 5:
                         /* tslint:enable */
                         _a.sent();
@@ -279,44 +255,11 @@ var Sitka = /** @class */ (function () {
         if (!!dispatch) {
             dispatch(action);
         }
+        else {
+            // alert("no dispatch")
+        }
     };
     return Sitka;
 }());
 exports.Sitka = Sitka;
-exports.createAppStore = function (intialState, reducersToCombine, middleware, sagaRoot) {
-    if (intialState === void 0) { intialState = {}; }
-    if (reducersToCombine === void 0) { reducersToCombine = []; }
-    if (middleware === void 0) { middleware = []; }
-    var logger = redux_logger_1.createLogger({
-        stateTransformer: function (state) { return state; },
-    });
-    var sagaMiddleware = redux_saga_1.default();
-    var commonMiddleware = [sagaMiddleware, logger];
-    var appReducer = reducersToCombine.reduce(function (acc, r) { return (__assign({}, acc, r)); }, {});
-    var combinedMiddleware = commonMiddleware.concat(middleware);
-    var store = redux_1.createStore(redux_1.combineReducers(appReducer), intialState, redux_1.applyMiddleware.apply(void 0, combinedMiddleware));
-    if (sagaRoot) {
-        sagaMiddleware.run(sagaRoot);
-    }
-    return store;
-};
-var hasMethod = function (obj, name) {
-    var desc = Object.getOwnPropertyDescriptor(obj, name);
-    return !!desc && typeof desc.value === "function";
-};
-var getInstanceMethodNames = function (obj, stop) {
-    var array = [];
-    var proto = Object.getPrototypeOf(obj);
-    while (proto && proto !== stop) {
-        Object.getOwnPropertyNames(proto).forEach(function (name) {
-            if (name !== "constructor") {
-                if (hasMethod(proto, name)) {
-                    array.push(name);
-                }
-            }
-        });
-        proto = Object.getPrototypeOf(proto);
-    }
-    return array;
-};
 //# sourceMappingURL=sitka.js.map
