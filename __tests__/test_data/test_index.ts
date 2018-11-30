@@ -1,5 +1,6 @@
 import { Sitka } from "../../src/sitka"
 import CounterModule from "./test_sitka_module"
+import TestSitkaModule from "./test_sitka_module"
 import { Store } from 'redux'
 
 export interface CounterState {
@@ -19,6 +20,7 @@ const sitka = new Sitka<AppModules>()
 
 sitka.register([
     new CounterModule(),
+    new TestSitkaModule(),
 ])
 
 export const store: Store = sitka.createStore()
