@@ -84,6 +84,7 @@ export class Sitka<MODULES = {}> {
         } else {
             // use own appstore creator
             const meta = this.createSitkaMeta()
+
             const store = createAppStore(
                 {
                     initialState: meta.defaultState,
@@ -106,10 +107,18 @@ export class Sitka<MODULES = {}> {
                 instance,
                 Object.prototype,
             )
+
             const handlers = methodNames.filter(m => m.indexOf("handle") === 0)
 
             const { moduleName } = instance
-            const { middlewareToAdd, sagas, forks, reducersToCombine, doDispatch: dispatch } = this
+
+            const {
+                middlewareToAdd,
+                sagas,
+                forks,
+                reducersToCombine,
+                doDispatch: dispatch,
+            } = this
 
             instance.modules = this.getModules()
 
@@ -209,9 +218,9 @@ export class Sitka<MODULES = {}> {
             .reduce(
                 (acc: {}, m: SitkaModule<{} | null, MODULES>) => ({
                     ...acc,
-                    [m.moduleName]: m.defaultState
+                    [m.moduleName]: m.defaultState,
                 }),
-                {}
+                {},
             )
     }
 
@@ -233,6 +242,7 @@ export class Sitka<MODULES = {}> {
                         const instance: {} = registeredModules[action._moduleId]
                         yield apply(instance, s.handler, action._args)
                     }
+
                     const item: any = yield takeEvery(s.name, generator)
                     toYield.push(item)
                 }

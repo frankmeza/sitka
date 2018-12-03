@@ -1,5 +1,5 @@
 import { Action, Middleware } from "redux"
-import { apply, CallEffectFn } from "redux-saga/effects"
+import { apply, CallEffectFn, CallEffect } from "redux-saga/effects"
 
 import {
     ModuleState,
@@ -39,12 +39,12 @@ export abstract class SitkaModule<MODULE_STATE extends ModuleState, MODULES> {
         }
     }
 
-    protected resetState(): Action {
-        return this.setState(this.defaultState)
-    }
-
     protected setState(state: MODULE_STATE): Action {
         return this.createAction(state)
+    }
+
+    protected resetState(): Action {
+        return this.setState(this.defaultState)
     }
 
     // this is used inside of each array
@@ -85,7 +85,6 @@ export abstract class SitkaModule<MODULE_STATE extends ModuleState, MODULES> {
 
     static *callAsGenerator(fn: Function, ...rest: any[]): {} {
         const generatorContext: GeneratorContext = handlerOriginalFunctionMap.get(fn)
-        return yield apply(generatorContext.context, generatorContext.fn, <any> rest)
+        return yield apply(generatorContext.context, generatorContext.fn, rest as any)
     }
 }
-
