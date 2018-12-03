@@ -38,3 +38,11 @@ export const handlerOriginalFunctionMap = new Map<Function, GeneratorContext>()
 export interface SitkaOptions {
     readonly log?: boolean
 }
+
+export interface StoreOptions {
+    readonly initialState?: {}
+    readonly reducersToCombine?: ReducersMapObject[]
+    readonly middleware?: Middleware[]
+    readonly sagaRoot?: () => IterableIterator<{}>
+    readonly log?: boolean
+}

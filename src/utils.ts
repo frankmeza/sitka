@@ -10,17 +10,15 @@ import {
 
 import { createLogger } from "redux-logger"
 import createSagaMiddleware, { SagaMiddleware } from "redux-saga"
-
-import { snakeCase } from "lodash"
+import { StoreOptions } from "./interfaces_and_types"
 
 export const createStateChangeKey = (module: string): string =>
-    `module_${snakeCase(module)}_change_state`.toUpperCase()
+    `module_${module}_change_state`.toUpperCase()
 
 export const createHandlerKey = (module: string, handler: string): string =>
     `module_${module}_${handler}`.toUpperCase()
 
 export const hasMethod = (obj: {}, name: string): boolean => {
-    // raw! getting into Object methods here
     const desc = Object.getOwnPropertyDescriptor(obj, name)
     return !!desc && typeof desc.value === "function"
 }
@@ -45,33 +43,43 @@ export const getInstanceMethodNames = (obj: {}, stop: {}): string[] => {
 }
 
 export const createAppStore = (
-    intialState: {} = {},
-    reducersToCombine: ReducersMapObject[] = [],
-    middleware: Middleware[] = [],
-    sagaRoot?: (() => IterableIterator<{}>)
+    options: StoreOptions,
 ): Store => {
+    const {
+        initialState = {},
+        reducersToCombine = [],
+        middleware = [],
+        sagaRoot,
+        log = false,
+    } = options
+
     const logger: Middleware = createLogger({
-        stateTransformer: (state: {}) => state
+        stateTransformer: (state: {}) => state,
     })
 
     const sagaMiddleware: SagaMiddleware<{}> = createSagaMiddleware()
-    const commonMiddleware: ReadonlyArray<Middleware> = [sagaMiddleware, logger]
+
+    const commonMiddleware: ReadonlyArray<Middleware> = log
+        ? [sagaMiddleware, logger] : [sagaMiddleware]
 
     const appReducer = reducersToCombine.reduce(
-        (acc, r) => ({ ...acc, ...r }),
-        {}
+        (acc, r) => ({...acc, ...r}), {}
     )
 
     const combinedMiddleware = [...commonMiddleware, ...middleware]
 
+    // const createStoreWithMiddleware = applyMiddleware(...combinedMiddleware)(createStore)
+
+    // const store: Store = createStoreWithMiddleware(combineReducers(appReducer))
+
     const store: Store = createStore(
         combineReducers(appReducer),
-        intialState as DeepPartial<{}>,
-        applyMiddleware(...combinedMiddleware)
+        initialState as DeepPartial<{}>,
+        applyMiddleware(...combinedMiddleware),
     )
 
     if (sagaRoot) {
-        sagaMiddleware.run(sagaRoot)
+        sagaMiddleware.run(<any> sagaRoot)
     }
 
     return store
