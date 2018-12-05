@@ -1,14 +1,14 @@
 import { Sitka } from "../../src/sitka"
 import CounterModule from "./test_sitka_module"
 import TestSitkaModule from "./test_sitka_module"
-import { Store } from 'redux'
+import { Store } from "redux"
 
 export interface CounterState {
     readonly counter: number
 }
 
 export interface AppModules {
-    readonly counter: CounterModule
+    readonly counter: CounterModule,
 }
 
 export interface AppState {

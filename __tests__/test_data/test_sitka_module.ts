@@ -58,4 +58,8 @@ export default class TestSitkaModule extends CounterModule {
     public testProvideSubscriptions(): SagaMeta[] {
         return this.provideSubscriptions()
     }
+
+    public testCallAsGenerator(fn?: Function): void {
+        TestSitkaModule.callAsGenerator(fn || this.handleIncrement)
+    }
 }

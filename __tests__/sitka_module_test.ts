@@ -5,11 +5,14 @@ import {
     GeneratorContext,
 } from "../src/interfaces_and_types"
 
-import { CounterState } from "./test_data/test_index"
-import { Action, Middleware } from "redux"
+import { CallEffectFn } from "redux-saga/effects"
+import { Action, Middleware, Store } from "redux"
 
+import { CounterState, AppModules } from "./test_data/test_index"
 import CounterModule from "./test_data/test_counter_module"
 import TestSitkaModule from "./test_data/test_sitka_module"
+
+import { Sitka } from "../src/sitka"
 
 type TestSitkaModuleAction = SitkaModuleAction<CounterState>
 
@@ -130,6 +133,30 @@ describe("CounterModule", () => {
             // defaults to returning []
             const expected: SagaMeta[] = []
             expect(t.testProvideSubscriptions()).toEqual(expected)
+        })
+    })
+
+    describe("provideForks()", () => {
+        test("returns CallEffectFn<any>[]", () => {
+            // defaults to returning []
+            const expected: CallEffectFn<any>[] = []
+            expect(t.testProvideSubscriptions()).toEqual(expected)
+        })
+    })
+
+    describe.only("static callAsGenerator", () => {
+        test("receives Function, function arguments; calls passed-in Function", () => {
+            const testSitka = new Sitka<AppModules>()
+
+            testSitka.register([
+                new TestSitkaModule(),
+            ])
+
+            const testStore: Store = testSitka.createStore()
+            const state = testStore.getState()
+
+            TestSitkaModule.callAsGenerator(t.testSetState)
+            console.log(state.counter)
         })
     })
 })
