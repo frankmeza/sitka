@@ -1,9 +1,12 @@
 import { Action, Middleware } from "redux"
+import { apply, CallEffectFn, CallEffect } from "redux-saga/effects"
 
 import {
     ModuleState,
     SagaMeta,
     SitkaModuleAction,
+    GeneratorContext,
+    handlerOriginalFunctionMap,
 } from "./interfaces_and_types"
 
 import { createStateChangeKey } from "./utils"
@@ -18,21 +21,21 @@ export abstract class SitkaModule<MODULE_STATE extends ModuleState, MODULES> {
         return this.moduleName
     }
 
-    public abstract defaultState: MODULE_STATE
+    public abstract defaultState?: MODULE_STATE
 
     protected createAction(
-        valueInState: Partial<MODULE_STATE>
+        v: Partial<MODULE_STATE>,
     ): SitkaModuleAction<MODULE_STATE> {
         const type: string = createStateChangeKey(this.reduxKey())
 
-        if (!valueInState) {
+        if (!v) {
             return { type, [type]: null }
         }
 
-        if (typeof valueInState !== "object") {
-            return { type, [type]: valueInState }
+        if (typeof v !== "object") {
+            return { type, [type]: v }
         } else {
-            return Object.assign({ type }, valueInState)
+            return Object.assign({ type }, v)
         }
     }
 
@@ -40,16 +43,31 @@ export abstract class SitkaModule<MODULE_STATE extends ModuleState, MODULES> {
         return this.createAction(state)
     }
 
+    protected resetState(): Action {
+        return this.setState(this.defaultState)
+    }
+
     // this is used inside of each array
     // item in this.provideMiddleware()
     protected createSubscription(
-        actionType: string,
-        handler: Function,
+        actionTarget: string | Function,
+        handler: CallEffectFn<any>,
     ): SagaMeta {
-        return {
-            name: actionType,
-            handler,
-            direct: true
+        if (typeof actionTarget === "string") {
+            return {
+                name: actionTarget,
+                handler,
+                direct: true,
+            }
+        } else {
+            const generatorContext: GeneratorContext =
+                handlerOriginalFunctionMap.get(actionTarget)
+
+            return {
+                name: generatorContext.handlerKey,
+                handler,
+                direct: true,
+            }
         }
     }
 
@@ -60,5 +78,13 @@ export abstract class SitkaModule<MODULE_STATE extends ModuleState, MODULES> {
     provideSubscriptions(): SagaMeta[] {
         return []
     }
-}
 
+    provideForks(): CallEffectFn<any>[] {
+        return []
+    }
+
+    static *callAsGenerator(fn: Function, ...rest: any[]): {} {
+        const generatorContext: GeneratorContext = handlerOriginalFunctionMap.get(fn)
+        return yield apply(generatorContext.context, generatorContext.fn, rest as any)
+    }
+}

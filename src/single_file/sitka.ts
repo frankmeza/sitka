@@ -1,39 +1,135 @@
+// version 1.0.28
+
 import {
     Action,
+    applyMiddleware,
+    combineReducers,
+    createStore,
+    DeepPartial,
     Dispatch,
     Middleware,
     ReducersMapObject,
     Store,
 } from "redux"
-
+import { createLogger } from "redux-logger"
 import {
-    all,
-    apply,
-    takeEvery,
-    CallEffectFn,
-    fork,
-    ForkEffect,
-} from "redux-saga/effects"
+    SagaMiddleware,
+} from "redux-saga"
+import createSagaMiddleware from "redux-saga"
+import { all, apply, takeEvery, fork, ForkEffect, CallEffectFn } from "redux-saga/effects"
 
-import {
-    createAppStore,
-    createHandlerKey,
-    createStateChangeKey,
-    getInstanceMethodNames,
-} from "./utils"
+export type SitkaModuleAction<T> = Partial<T> & { type: string } | Action
 
-import {
-    AppStoreCreator,
-    ModuleState,
-    SagaMeta,
-    SitkaAction,
-    SitkaMeta,
-    SitkaOptions,
-    handlerOriginalFunctionMap,
-} from "./interfaces_and_types"
+type ModuleState = {} | undefined | null
 
-import { SitkaModule } from "./sitka_module"
+const createStateChangeKey = (module: string) => `module_${module}_change_state`.toUpperCase()
+const createHandlerKey = (module: string, handler: string) => `module_${module}_${handler}`.toUpperCase()
 
+interface GeneratorContext {
+    readonly handlerKey: string
+    readonly fn: CallEffectFn<any>
+    readonly context: {}
+}
+
+const handlerOriginalFunctionMap = new Map<Function, GeneratorContext>()
+
+export abstract class SitkaModule<MODULE_STATE extends ModuleState, MODULES> {
+    public modules: MODULES
+
+    public abstract moduleName: string
+
+    // by default, the redux key is same as the moduleName
+    public reduxKey(): string {
+        return this.moduleName
+    }
+
+    public abstract defaultState?: MODULE_STATE
+
+    protected createAction(v: Partial<MODULE_STATE>): SitkaModuleAction<MODULE_STATE> {
+        const type = createStateChangeKey(this.reduxKey())
+        if (!v) {
+            return { type, [type]: null }
+        }
+
+        if (typeof v !== "object") {
+            return { type, [type]: v }
+        } else {
+            return Object.assign({ type }, v)
+        }
+    }
+
+    protected setState(state: MODULE_STATE): Action {
+        return this.createAction(state)
+    }
+
+    protected resetState(): Action {
+        return this.setState(this.defaultState)
+    }
+
+    // can be either the action type string, or the module function to watch
+    protected createSubscription(actionTarget: string | Function, handler: CallEffectFn<any>): SagaMeta {
+        if (typeof actionTarget === "string") {
+            return {
+                name: actionTarget,
+                handler,
+                direct: true,
+            }
+        } else {
+            const generatorContext: GeneratorContext = handlerOriginalFunctionMap.get(actionTarget)
+            return {
+                name: generatorContext.handlerKey,
+                handler,
+                direct: true,
+            }
+        }
+    }
+
+    provideMiddleware(): Middleware[] {
+       return []
+    }
+
+    provideSubscriptions(): SagaMeta[] {
+        return []
+    }
+
+    provideForks(): CallEffectFn<any>[] {
+        return []
+    }
+
+    static *callAsGenerator(fn: Function, ...rest: any[]): {} {
+        const generatorContext: GeneratorContext = handlerOriginalFunctionMap.get(fn)
+        return yield apply(generatorContext.context, generatorContext.fn, <any> rest)
+    }
+}
+
+export interface SagaMeta {
+    // tslint:disable-next-line:no-any
+    readonly handler: any
+    readonly name: string
+    readonly direct?: boolean
+}
+
+interface SitkaAction extends Action {
+    _moduleId: string
+    // tslint:disable-next-line:no-any
+    _args: any
+}
+
+// tslint:disable-next-line:max-classes-per-file
+export class SitkaMeta {
+    public readonly defaultState: {}
+    public readonly middleware: Middleware[]
+    public readonly reducersToCombine: ReducersMapObject
+    public readonly sagaRoot: (() => IterableIterator<{}>)
+}
+
+export type AppStoreCreator = (sitaMeta: SitkaMeta) => Store
+
+export interface SitkaOptions {
+    readonly log?: boolean
+}
+
+// tslint:disable-next-line:max-classes-per-file
 export class Sitka<MODULES = {}> {
     // tslint:disable-next-line:no-any
     private sagas: SagaMeta[] = []
@@ -84,7 +180,6 @@ export class Sitka<MODULES = {}> {
         } else {
             // use own appstore creator
             const meta = this.createSitkaMeta()
-
             const store = createAppStore(
                 {
                     initialState: meta.defaultState,
@@ -102,29 +197,21 @@ export class Sitka<MODULES = {}> {
     public register<SITKA_MODULE extends SitkaModule<ModuleState, MODULES>>(
         instances: SITKA_MODULE[],
     ): void {
-        instances.forEach(instance => {
+        instances.forEach( instance => {
             const methodNames = getInstanceMethodNames(
                 instance,
                 Object.prototype,
             )
-
             const handlers = methodNames.filter(m => m.indexOf("handle") === 0)
 
             const { moduleName } = instance
-
-            const {
-                middlewareToAdd,
-                sagas,
-                forks,
-                reducersToCombine,
-                doDispatch: dispatch,
-            } = this
+            const { middlewareToAdd, sagas, forks, reducersToCombine, doDispatch: dispatch } = this
 
             instance.modules = this.getModules()
 
             middlewareToAdd.push(...instance.provideMiddleware())
 
-            instance.provideForks().forEach(f => {
+            instance.provideForks().forEach( f => {
                 forks.push(f.bind(instance))
             })
 
@@ -203,7 +290,7 @@ export class Sitka<MODULES = {}> {
         })
 
         // do subscribers after all has been registered
-        instances.forEach(instance => {
+        instances.forEach( instance => {
             const { sagas } = this
             const subscribers = instance.provideSubscriptions()
             sagas.push(...subscribers)
@@ -212,14 +299,10 @@ export class Sitka<MODULES = {}> {
 
     private getDefaultState(): {} {
         const modules = this.getModules()
-
         return Object.keys(modules)
-            .map(k => modules[k])
+            .map( k => modules[k])
             .reduce(
-                (acc: {}, m: SitkaModule<{} | null, MODULES>) => ({
-                    ...acc,
-                    [m.moduleName]: m.defaultState,
-                }),
+                (acc: {}, m: SitkaModule<{} | null, MODULES>) => ({...acc, [m.moduleName]: m.defaultState}),
                 {},
             )
     }
@@ -242,7 +325,6 @@ export class Sitka<MODULES = {}> {
                         const instance: {} = registeredModules[action._moduleId]
                         yield apply(instance, s.handler, action._args)
                     }
-
                     const item: any = yield takeEvery(s.name, generator)
                     toYield.push(item)
                 }
@@ -270,4 +352,73 @@ export class Sitka<MODULES = {}> {
             // alert("no dispatch")
         }
     }
+}
+
+export interface StoreOptions {
+    readonly initialState?: {}
+    readonly reducersToCombine?: ReducersMapObject[]
+    readonly middleware?: Middleware[]
+    readonly sagaRoot?: () => IterableIterator<{}>
+    readonly log?: boolean
+}
+
+export const createAppStore = (
+    options: StoreOptions,
+): Store => {
+    const {
+        initialState = {},
+        reducersToCombine = [],
+        middleware = [],
+        sagaRoot,
+        log = false,
+    } = options
+
+    const logger: Middleware = createLogger({
+        stateTransformer: (state: {}) => state,
+    })
+    const sagaMiddleware: SagaMiddleware<{}> = createSagaMiddleware()
+    const commonMiddleware: ReadonlyArray<Middleware> = log
+        ? [sagaMiddleware, logger] : [sagaMiddleware]
+    const appReducer = reducersToCombine.reduce(
+        (acc, r) => ({...acc, ...r}), {}
+    )
+
+    const combinedMiddleware = [...commonMiddleware, ...middleware]
+
+    // const createStoreWithMiddleware = applyMiddleware(...combinedMiddleware)(createStore)
+
+    // const store: Store = createStoreWithMiddleware(combineReducers(appReducer))
+
+    const store: Store = createStore(
+        combineReducers(appReducer),
+        initialState as DeepPartial<{}>,
+        applyMiddleware(...combinedMiddleware),
+    )
+
+    if (sagaRoot) {
+        sagaMiddleware.run(<any> sagaRoot)
+    }
+
+    return store
+}
+
+const hasMethod = (obj: {}, name: string) => {
+    const desc = Object.getOwnPropertyDescriptor(obj, name)
+    return !!desc && typeof desc.value === "function"
+}
+
+const getInstanceMethodNames = (obj: {}, stop: {}) => {
+    const array: string[] = []
+    let proto = Object.getPrototypeOf(obj)
+    while (proto && proto !== stop) {
+        Object.getOwnPropertyNames(proto).forEach(name => {
+            if (name !== "constructor") {
+                if (hasMethod(proto, name)) {
+                    array.push(name)
+                }
+            }
+        })
+        proto = Object.getPrototypeOf(proto)
+    }
+    return array
 }

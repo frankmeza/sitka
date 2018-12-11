@@ -25,6 +25,10 @@ export default class TestSitkaModule extends CounterModule {
         return this.createAction({})
     }
 
+    public testResetState(): Action<any> {
+        return this.resetState()
+    }
+
     public testSetState(): Action<any> {
         return this.setState({ counter: 42 })
     }
@@ -33,10 +37,17 @@ export default class TestSitkaModule extends CounterModule {
         return "testCallbackFunction"
     }
 
-    public testCreateSubscription(): SagaMeta {
+    public testCreateSubscriptionWithString(): SagaMeta {
         return this.createSubscription(
             "MODULE_COUNTER_CHANGE_STATE",
-            this.testCallbackFunction
+            this.testCallbackFunction,
+        )
+    }
+
+    public testCreateSubscriptionWithFunction(): SagaMeta {
+        return this.createSubscription(
+            this.handleIncrement,
+            this.testCallbackFunction,
         )
     }
 
@@ -46,5 +57,9 @@ export default class TestSitkaModule extends CounterModule {
 
     public testProvideSubscriptions(): SagaMeta[] {
         return this.provideSubscriptions()
+    }
+
+    public testCallAsGenerator(fn?: Function): void {
+        TestSitkaModule.callAsGenerator(fn || this.handleIncrement)
     }
 }

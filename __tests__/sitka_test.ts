@@ -1,9 +1,8 @@
 import { Sitka } from "../src/sitka"
-
 import TestSitka from "./test_data/test_sitka"
 
 describe("Sitka", () => {
-    const sitka: Sitka = new Sitka()
+    const sitka: Sitka = new TestSitka()
 
     describe("public setDispatch()", () => {
 
