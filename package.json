@@ -1,48 +1,49 @@
 {
-    "name": "olio-sitka",
-    "autho": "aron@olioapps.com",
-    "version": "1.0.19",
-    "license": "MIT",
-    "files": [
-        "dist/**/*"
+  "name": "olio-sitka",
+  "autho": "aron@olioapps.com",
+  "version": "1.0.19",
+  "license": "MIT",
+  "files": [
+    "dist/**/*"
+  ],
+  "main": "dist/index.js",
+  "prettier": {
+    "semi": false
+  },
+  "jest": {
+    "moduleFileExtensions": [
+      "ts",
+      "tsx",
+      "js"
     ],
-    "main": "dist/index.js",
-    "prettier": {
-        "semi": false
+    "transform": {
+      "\\.(ts|tsx)$": "<rootDir>/node_modules/ts-jest/preprocessor.js"
     },
-    "jest": {
-        "moduleFileExtensions": [
-            "ts",
-            "tsx",
-            "js"
-        ],
-        "transform": {
-            "\\.(ts|tsx)$": "<rootDir>/node_modules/ts-jest/preprocessor.js"
-        },
-        "testRegex": "/__tests__/",
-        "testPathIgnorePatterns": [
-            "/test_data/",
-            ".history"
-        ]
-    },
-    "scripts": {
-        "prepublish": "tsc",
-        "semantic-release": "semantic-release"
-    },
-    "devDependencies": {
-        "@commitlint/cli": "^7.1.2",
-        "@commitlint/config-angular": "^7.1.2",
-        "@types/jest": "20.0.4",
-        "@types/lodash": "^4.14.118",
-        "git-format-staged": "^2.1.0",
-        "husky": "^0.14.3",
-        "jest": "20.0.4",
-        "prettier": "^1.14.2",
-        "redux": "^4.0.0",
-        "redux-logger": "^3.0.6",
-        "redux-saga": "^0.15.4",
-        "semantic-release": "^15.9.16",
-        "ts-jest": "20.0.4",
-        "typescript": "^3.0.3"
-    }
+    "testRegex": "/__tests__/",
+    "testPathIgnorePatterns": [
+      "/test_data/",
+      ".history"
+    ]
+  },
+  "scripts": {
+    "prepublish": "tsc",
+    "semantic-release": "semantic-release"
+  },
+  "devDependencies": {
+    "@commitlint/cli": "^7.1.2",
+    "@commitlint/config-angular": "^7.1.2",
+    "@types/jest": "20.0.4",
+    "@types/lodash": "^4.14.118",
+    "@types/redux-logger": "^3.0.6",
+    "git-format-staged": "^2.1.0",
+    "husky": "^0.14.3",
+    "jest": "20.0.4",
+    "prettier": "^1.14.2",
+    "redux": "^4.0.0",
+    "redux-logger": "^3.0.6",
+    "redux-saga": "^0.15.4",
+    "semantic-release": "^15.9.16",
+    "ts-jest": "20.0.4",
+    "typescript": "^3.0.3"
+  }
 }
