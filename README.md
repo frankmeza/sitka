@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.com/frankmeza/sitka.svg?branch=master)](https://travis-ci.com/frankmeza/sitka)
+
 # Sitka Redux Module Manager
 
 This library allows you to construct strongly typed APIs for managing your Redux store. You can use it to package up related behavior into Typescript classes, which can be injected into your Redux store for easy access throughout your application.
