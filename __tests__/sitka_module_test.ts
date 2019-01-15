@@ -143,20 +143,4 @@ describe("CounterModule", () => {
             expect(t.testProvideSubscriptions()).toEqual(expected)
         })
     })
-
-    describe.only("static callAsGenerator", () => {
-        test("receives Function, function arguments; calls passed-in Function", () => {
-            const testSitka = new Sitka<AppModules>()
-
-            testSitka.register([
-                new TestSitkaModule(),
-            ])
-
-            const testStore: Store = testSitka.createStore()
-            const state = testStore.getState()
-
-            TestSitkaModule.callAsGenerator(t.testSetState)
-            console.log(state.counter)
-        })
-    })
 })
