@@ -1,8 +1,12 @@
 import { Action, Dispatch } from "redux"
 import TestSitka from "./test_data/test_sitka"
+import CounterModule from "./test_data/test_counter_module"
 
 describe("Sitka", () => {
     const sitka = new TestSitka()
+    const testCounterModule = new CounterModule()
+
+    sitka.register([testCounterModule])
 
     describe("public setDispatch()", () => {
         test("receives a Dispatch object, sets it as private class property", () => {
@@ -16,11 +20,11 @@ describe("Sitka", () => {
 
     describe("public getModules()", () => {
         test("returns the registeredModules", () => {
+            const expected = { counter: testCounterModule }
+
+            expect(sitka.testGetModules()).toEqual(expected)
         })
     })
-
-    // describe("public setDispatch()", () => {})
-    // describe("public getModules()", () => {})
 
     // describe("public createSitkaMeta()", () => {
 
@@ -36,8 +40,10 @@ describe("Sitka", () => {
 
     describe("private getDefaultState()", () => {
         test("returns default state of Sitka", () => {
-            const defaultState = sitka.testGetDefaultState()
-            expect(defaultState).toEqual({})
+            const defaultSitkaState = sitka.testGetDefaultState()
+            const expectedDefaultState = { counter: testCounterModule.defaultState }
+
+            expect(defaultSitkaState).toEqual(expectedDefaultState)
         })
     })
 
