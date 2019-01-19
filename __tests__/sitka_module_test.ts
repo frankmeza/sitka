@@ -6,13 +6,11 @@ import {
 } from "../src/interfaces_and_types"
 
 import { CallEffectFn } from "redux-saga/effects"
-import { Action, Middleware, Store } from "redux"
+import { Action, Middleware } from "redux"
 
-import { CounterState, AppModules } from "./test_data/test_index"
+import { CounterState } from "./test_data/test_index"
 import CounterModule from "./test_data/test_counter_module"
 import TestSitkaModule from "./test_data/test_sitka_module"
-
-import { Sitka } from "../src/sitka"
 
 type TestSitkaModuleAction = SitkaModuleAction<CounterState>
 

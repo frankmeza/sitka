@@ -9,10 +9,6 @@ import CounterModule from "./test_counter_module"
 import { CounterState } from "./test_index"
 
 export default class TestSitkaModule extends CounterModule {
-    constructor() {
-        super()
-    }
-
     public testCreateAction(): SitkaModuleAction<CounterState> {
         return this.createAction({ counter: 42 })
     }
@@ -57,9 +53,5 @@ export default class TestSitkaModule extends CounterModule {
 
     public testProvideSubscriptions(): SagaMeta[] {
         return this.provideSubscriptions()
-    }
-
-    public testCallAsGenerator(fn?: Function): void {
-        TestSitkaModule.callAsGenerator(fn || this.handleIncrement)
     }
 }

@@ -1,9 +1,8 @@
 import { Action, Dispatch } from "redux"
-import { Sitka } from "../src/sitka"
 import TestSitka from "./test_data/test_sitka"
 
 describe("Sitka", () => {
-    const sitka: Sitka = new TestSitka()
+    const sitka = new TestSitka()
 
     describe("public setDispatch()", () => {
         test("receives a Dispatch object, sets it as private class property", () => {
@@ -20,27 +19,33 @@ describe("Sitka", () => {
         })
     })
 
-    describe("public createSitkaMeta()", () => {
+    // describe("public setDispatch()", () => {})
+    // describe("public getModules()", () => {})
 
-    })
+    // describe("public createSitkaMeta()", () => {
 
-    describe("public createStore()", () => {
+    // })
 
-    })
+    // describe("public createStore()", () => {
 
-    describe("public register()", () => {
+    // })
 
-    })
+    // describe("public register()", () => {
+
+    // })
 
     describe("private getDefaultState()", () => {
-
+        test("returns default state of Sitka", () => {
+            const defaultState = sitka.testGetDefaultState()
+            expect(defaultState).toEqual({})
+        })
     })
 
-    describe("private createRoot()", () => {
+    // describe("private createRoot()", () => {
 
-    })
+    // })
 
-    describe("private doDispatch()", () => {
+    // describe("private doDispatch()", () => {
 
-    })
+    // })
 })
