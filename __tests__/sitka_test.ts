@@ -51,7 +51,7 @@ describe("Sitka", () => {
 
     // })
 
-    // describe("private doDispatch()", () => {
-
-    // })
+    describe("private doDispatch()", () => {
+        test("if dispatch property exists, function calls dispatch with passed in Action", () => {})
+    })
 })
