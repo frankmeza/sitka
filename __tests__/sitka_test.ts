@@ -1,6 +1,8 @@
 import { Action, Dispatch } from "redux"
 import TestSitka from "./test_data/test_sitka"
 import CounterModule from "./test_data/test_counter_module"
+import { Sitka } from "../src/sitka";
+import { SitkaMeta } from "../src/interfaces_and_types"
 
 describe("Sitka", () => {
     const sitka = new TestSitka()
@@ -26,9 +28,25 @@ describe("Sitka", () => {
         })
     })
 
-    // describe("public createSitkaMeta()", () => {
+    describe("public createSitkaMeta()", () => {
+        test("returns an instance of SitkaMeta", () => {
+            const expectedSitkaMeta: SitkaMeta = {
+                defaultState: {
+                    ...sitka.testGetDefaultState(),
+                    __sitka__: sitka,
+                },
+                middleware: sitka["middlewareToAdd"],
+                reducersToCombine: {
+                    ...sitka["reducersToCombine"],
+                    __sitka__: (state: Sitka | null = null): Sitka | null => state,
+                },
+                sagaRoot: sitka["createRoot"](),
+            }
 
-    // })
+            expect(Object.keys(sitka.createSitkaMeta()))
+                .toEqual(Object.keys(expectedSitkaMeta))
+        })
+    })
 
     // describe("public createStore()", () => {
 
