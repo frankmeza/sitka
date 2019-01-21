@@ -1,3 +1,4 @@
+import { Action } from "redux"
 import { Sitka } from "../../src/sitka"
 import { AppModules } from "./test_index"
 
@@ -14,5 +15,9 @@ export default class TestSitka extends Sitka<AppModules> {
     public testCreateRoot(): () => IterableIterator<{}> {
         // this is a private method
         return this["createRoot"]()
+    }
+
+    public testDoDispatch(action: Action): void {
+        return this["doDispatch"](action)
     }
 }

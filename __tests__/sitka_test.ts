@@ -123,7 +123,18 @@ describe("Sitka", () => {
         })
     })
 
-    // describe("private doDispatch()", () => {
-    //     test("if dispatch property exists, function calls dispatch with passed in Action", () => {})
-    // })
+    describe("private doDispatch()", () => {
+        test("if dispatch property exists, function calls sitka[\"dispatch\"] with passed in Action", () => {
+            const action: Action = {
+                "type": "MODULE_COUNTER_CHANGE_STATE",
+            }
+
+            // set private property as a mock
+            const mockedDispatchFn = sitka["doDispatch"] = jest.fn()
+            sitka.testDoDispatch(action)
+
+            expect(mockedDispatchFn).toHaveBeenLastCalledWith(action)
+            expect(mockedDispatchFn.mock.calls.length).toBe(1)
+        })
+    })
 })
