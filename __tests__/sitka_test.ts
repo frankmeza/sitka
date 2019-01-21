@@ -11,7 +11,8 @@ import TestSitka from "./test_data/test_sitka"
 import CounterModule from "./test_data/test_counter_module"
 import { Sitka } from "../src/sitka"
 import { SitkaMeta, AppStoreCreator } from "../src/interfaces_and_types"
-import { createAppStore } from "../src/utils"
+import * as utils from "../src/utils"
+import TestSitkaModule from "./test_data/test_sitka_module";
 
 describe("Sitka", () => {
     const sitka = new TestSitka()
@@ -74,7 +75,7 @@ describe("Sitka", () => {
 
         test("given AppStoreCreator type, returns Redux Store<{}>", () => {
             const appStoreCreator: AppStoreCreator = (meta: SitkaMeta): Store<{}> => {
-                return createAppStore({
+                return utils.createAppStore({
                     initialState: meta.defaultState,
                     reducersToCombine: [meta.reducersToCombine],
                     middleware: meta.middleware,
@@ -95,7 +96,25 @@ describe("Sitka", () => {
         })
     })
 
-    // describe("public register()", () => {})
+    describe("public register()", () => {
+        const ts = new TestSitka()
+        const tsm = new TestSitkaModule()
+
+        test("generates instance method names for each module", () => {
+            const spy = jest.spyOn(utils, "getInstanceMethodNames")
+            ts.register([tsm])
+
+            expect(spy).toHaveBeenCalled()
+
+            const appModules = ts.getModules()
+            const numberOfModules = Object.keys(appModules).length
+
+            expect(numberOfModules).toBe(1)
+            expect(spy.mock.calls.length).toEqual(numberOfModules)
+        })
+
+        // needs way more tests...
+    })
 
     describe("private getDefaultState()", () => {
         test("returns default state of Sitka", () => {
