@@ -1,21 +1,14 @@
 import {
     SagaMeta,
-    SitkaModuleAction,
     handlerOriginalFunctionMap,
     GeneratorContext,
 } from "../src/interfaces_and_types"
 
 import { CallEffectFn } from "redux-saga/effects"
-import { Action, Middleware } from "redux"
+import { Middleware } from "redux"
 
-import { CounterState } from "./test_data/test_index"
+import { TestAction, TestSitkaModuleAction } from "./test_data/test_index"
 import TestSitkaModule from "./test_data/test_sitka_module"
-
-type TestSitkaModuleAction = SitkaModuleAction<CounterState>
-
-type TestAction = Action<"MODULE_COUNTER_CHANGE_STATE"> & {
-    readonly counter: number
-}
 
 describe("CounterModule", () => {
     const t = new TestSitkaModule()

@@ -1,7 +1,8 @@
 import { Sitka } from "../../src/sitka"
 import CounterModule from "./test_sitka_module"
 import TestSitkaModule from "./test_sitka_module"
-import { Store } from "redux"
+import { Action, Store } from "redux"
+import { SitkaModuleAction } from "../../src/interfaces_and_types"
 
 interface CounterState {
     readonly counter: number
@@ -16,6 +17,12 @@ interface AppState {
     readonly __sitka__: Sitka<AppModules>
 }
 
+type TestSitkaModuleAction = SitkaModuleAction<CounterState>
+
+type TestAction = Action<"MODULE_COUNTER_CHANGE_STATE"> & {
+    readonly counter: number
+}
+
 const sitka = new Sitka<AppModules>()
 
 sitka.register([
@@ -26,9 +33,11 @@ sitka.register([
 const store: Store = sitka.createStore()
 
 export {
-    CounterState,
     AppModules,
     AppState,
+    CounterState,
+    TestAction,
+    TestSitkaModuleAction,
     sitka,
     store,
 }
