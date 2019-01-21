@@ -1,4 +1,12 @@
-import { Action, Dispatch, Store } from "redux"
+import {
+    Action,
+    AnyAction,
+    Dispatch,
+    Reducer,
+    Store,
+    createStore,
+} from "redux"
+
 import TestSitka from "./test_data/test_sitka"
 import CounterModule from "./test_data/test_counter_module"
 import { Sitka } from "../src/sitka"
@@ -59,19 +67,26 @@ describe("Sitka", () => {
         })
     })
 
-    // describe("public createStore()", () => {
-    //     test("given AppStoreCreator type, returns Store<{}>", () => {})
-    //     test("not given AppStoreCreator type, returns Store<{}>", () => {})
-    // })
+    describe("public createStore()", () => {
+        // test("given AppStoreCreator type, returns Redux Store<{}>", () => {})
 
-    // describe("public register()", () => {
+        test("not given AppStoreCreator type, returns Redux Store<{}>", () => {
+            let reducerStub: Reducer<{}, AnyAction> = () => null
+            const reduxStore: Store = createStore(reducerStub)
 
-    // })
+            expect(Object.keys(sitka.createStore()))
+                .toEqual(Object.keys(reduxStore))
+        })
+    })
+
+    // describe("public register()", () => {})
 
     describe("private getDefaultState()", () => {
         test("returns default state of Sitka", () => {
             const defaultSitkaState = sitka.testGetDefaultState()
-            const expectedDefaultState = { counter: testCounterModule.defaultState }
+            const expectedDefaultState = {
+                counter: testCounterModule.defaultState,
+            }
 
             expect(defaultSitkaState).toEqual(expectedDefaultState)
         })
