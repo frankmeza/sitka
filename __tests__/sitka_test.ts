@@ -10,7 +10,8 @@ import {
 import TestSitka from "./test_data/test_sitka"
 import CounterModule from "./test_data/test_counter_module"
 import { Sitka } from "../src/sitka"
-import { SitkaMeta } from "../src/interfaces_and_types"
+import { SitkaMeta, AppStoreCreator } from "../src/interfaces_and_types"
+import { createAppStore } from "../src/utils"
 
 describe("Sitka", () => {
     const sitka = new TestSitka()
@@ -68,12 +69,27 @@ describe("Sitka", () => {
     })
 
     describe("public createStore()", () => {
-        // test("given AppStoreCreator type, returns Redux Store<{}>", () => {})
+        const reducerStub: Reducer<{}, AnyAction> = () => null
+        const reduxStore: Store = createStore(reducerStub)
+
+        test("given AppStoreCreator type, returns Redux Store<{}>", () => {
+            const appStoreCreator: AppStoreCreator = (meta: SitkaMeta): Store<{}> => {
+                return createAppStore({
+                    initialState: meta.defaultState,
+                    reducersToCombine: [meta.reducersToCombine],
+                    middleware: meta.middleware,
+                    sagaRoot: meta.sagaRoot,
+                    log: this.sitkaOptions && this.sitkaOptions.log === true,
+                })
+            }
+
+            // createStore() is called with appStoreCreator passed in
+            expect(Object.keys(sitka.createStore(appStoreCreator)))
+                .toEqual(Object.keys(reduxStore))
+        })
 
         test("not given AppStoreCreator type, returns Redux Store<{}>", () => {
-            let reducerStub: Reducer<{}, AnyAction> = () => null
-            const reduxStore: Store = createStore(reducerStub)
-
+            // createStore() is called without appStoreCreator passed in
             expect(Object.keys(sitka.createStore()))
                 .toEqual(Object.keys(reduxStore))
         })
@@ -92,7 +108,20 @@ describe("Sitka", () => {
         })
     })
 
-    // describe("private createRoot()", () => {})
+    describe("private createRoot()", () => {
+        test("returns () => IterableIterator<{}>", () => {
+            type funcReturnsIterableIterator = () => IterableIterator<{}>
+
+            const functionOutput: funcReturnsIterableIterator = sitka.testCreateRoot()
+            const returnedFromFunctionOutput: IterableIterator<{}> = functionOutput()
+
+            expect(sitka.testCreateRoot())
+                .toBeInstanceOf(Function as unknown as funcReturnsIterableIterator)
+
+            expect(returnedFromFunctionOutput)
+                .toBeInstanceOf(Object as unknown as IterableIterator<{}>)
+        })
+    })
 
     // describe("private doDispatch()", () => {
     //     test("if dispatch property exists, function calls dispatch with passed in Action", () => {})
