@@ -9,7 +9,6 @@ import { CallEffectFn } from "redux-saga/effects"
 import { Action, Middleware } from "redux"
 
 import { CounterState } from "./test_data/test_index"
-import CounterModule from "./test_data/test_counter_module"
 import TestSitkaModule from "./test_data/test_sitka_module"
 
 type TestSitkaModuleAction = SitkaModuleAction<CounterState>
@@ -19,15 +18,13 @@ type TestAction = Action<"MODULE_COUNTER_CHANGE_STATE"> & {
 }
 
 describe("CounterModule", () => {
-    const counterModule: CounterModule = new CounterModule()
+    const t = new TestSitkaModule()
 
     describe("public reduxKey()", () => {
         test("returns moduleName of this SitkaModule", () => {
-            expect(counterModule.reduxKey()).toEqual("counter")
+            expect(t.reduxKey()).toEqual("counter")
         })
     })
-
-    const t = new TestSitkaModule()
 
     describe("protected createAction()", () => {
         describe("receives Partial<MODULE_STATE>; returns SitkaModuleAction", () => {
