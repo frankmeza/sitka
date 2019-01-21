@@ -1,7 +1,7 @@
-import { Action, Dispatch } from "redux"
+import { Action, Dispatch, Store } from "redux"
 import TestSitka from "./test_data/test_sitka"
 import CounterModule from "./test_data/test_counter_module"
-import { Sitka } from "../src/sitka";
+import { Sitka } from "../src/sitka"
 import { SitkaMeta } from "../src/interfaces_and_types"
 
 describe("Sitka", () => {
@@ -29,27 +29,39 @@ describe("Sitka", () => {
     })
 
     describe("public createSitkaMeta()", () => {
-        test("returns an instance of SitkaMeta", () => {
-            const expectedSitkaMeta: SitkaMeta = {
-                defaultState: {
-                    ...sitka.testGetDefaultState(),
-                    __sitka__: sitka,
-                },
-                middleware: sitka["middlewareToAdd"],
-                reducersToCombine: {
-                    ...sitka["reducersToCombine"],
-                    __sitka__: (state: Sitka | null = null): Sitka | null => state,
-                },
-                sagaRoot: sitka["createRoot"](),
-            }
+        const expectedSitkaMeta: SitkaMeta = {
+            defaultState: {
+                ...sitka.testGetDefaultState(),
+                __sitka__: sitka,
+            },
+            middleware: sitka["middlewareToAdd"],
+            reducersToCombine: {
+                ...sitka["reducersToCombine"],
+                __sitka__: (state: Sitka | null = null): Sitka | null => state,
+            },
+            sagaRoot: sitka["createRoot"](),
+        }
 
-            expect(Object.keys(sitka.createSitkaMeta()))
-                .toEqual(Object.keys(expectedSitkaMeta))
+        test("returns an instance of SitkaMeta", () => {
+            const createdSitkaMeta = sitka.createSitkaMeta()
+            expect(Object.keys(createdSitkaMeta)).toEqual(Object.keys(expectedSitkaMeta))
+
+            expect(createdSitkaMeta.defaultState).toEqual(expectedSitkaMeta.defaultState)
+            expect(createdSitkaMeta.middleware).toEqual(expectedSitkaMeta.middleware)
+
+            // anonymous function causes problems when using .toEqual(),
+            // so function results are stringified then compared using jest#expect
+            expect(JSON.stringify(createdSitkaMeta.reducersToCombine))
+                .toEqual(JSON.stringify(expectedSitkaMeta.reducersToCombine))
+
+            expect(JSON.stringify(createdSitkaMeta.sagaRoot))
+                .toEqual(JSON.stringify(expectedSitkaMeta.sagaRoot))
         })
     })
 
     // describe("public createStore()", () => {
-
+    //     test("given AppStoreCreator type, returns Store<{}>", () => {})
+    //     test("not given AppStoreCreator type, returns Store<{}>", () => {})
     // })
 
     // describe("public register()", () => {
@@ -65,11 +77,9 @@ describe("Sitka", () => {
         })
     })
 
-    // describe("private createRoot()", () => {
+    // describe("private createRoot()", () => {})
 
+    // describe("private doDispatch()", () => {
+    //     test("if dispatch property exists, function calls dispatch with passed in Action", () => {})
     // })
-
-    describe("private doDispatch()", () => {
-        test("if dispatch property exists, function calls dispatch with passed in Action", () => {})
-    })
 })
