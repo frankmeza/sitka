@@ -7,16 +7,17 @@ import {
     createStore,
 } from "redux"
 
-import TestSitka from "./test_data/test_sitka"
-import CounterModule from "./test_data/test_counter_module"
 import { Sitka } from "../src/sitka"
 import { SitkaMeta, AppStoreCreator } from "../src/interfaces_and_types"
 import * as utils from "../src/utils"
+
+import TestSitka from "./test_data/test_sitka"
 import TestSitkaModule from "./test_data/test_sitka_module"
+import { AppModules } from "./test_data/test_index";
 
 describe("Sitka", () => {
     const sitka = new TestSitka()
-    const testCounterModule = new CounterModule()
+    const testCounterModule = new TestSitkaModule()
 
     sitka.register([testCounterModule])
 
@@ -32,7 +33,7 @@ describe("Sitka", () => {
 
     describe("public getModules()", () => {
         test("returns the registeredModules", () => {
-            const expected = { counter: testCounterModule }
+            const expected: AppModules = { counter: testCounterModule }
 
             expect(sitka.testGetModules()).toEqual(expected)
         })
@@ -53,7 +54,7 @@ describe("Sitka", () => {
         }
 
         test("returns an instance of SitkaMeta", () => {
-            const createdSitkaMeta = sitka.createSitkaMeta()
+            const createdSitkaMeta: SitkaMeta = sitka.createSitkaMeta()
             expect(Object.keys(createdSitkaMeta)).toEqual(Object.keys(expectedSitkaMeta))
 
             expect(createdSitkaMeta.defaultState).toEqual(expectedSitkaMeta.defaultState)
@@ -97,34 +98,34 @@ describe("Sitka", () => {
     })
 
     describe("public register()", () => {
-        const ts = new TestSitka()
-        const tsm = new TestSitkaModule()
+        const testSitka = new TestSitka()
+        const testCounterModule = new TestSitkaModule()
 
         test("registers SitkaModules", () => {
             // before registering a module
-            const modules = ts.getModules()
-            const numberOfModules = Object.keys(modules).length
+            const modules: AppModules = testSitka.getModules()
+            const numberOfModules: number = Object.keys(modules).length
             expect(numberOfModules).toEqual(0)
 
-            ts.register([tsm])
+            testSitka.register([testCounterModule])
 
             // after registering a module
-            const modulesUpdated = ts.getModules()
-            const numberOfModulesUpdated = Object.keys(modulesUpdated).length
+            const modulesUpdated: AppModules = testSitka.getModules()
+            const numberOfModulesUpdated: number = Object.keys(modulesUpdated).length
             expect(numberOfModulesUpdated).toEqual(1)
 
-            // the module registered is tsm
-            expect(modulesUpdated.counter).toEqual(tsm)
+            // the module registered is testCounterModule
+            expect(modulesUpdated.counter).toEqual(testCounterModule)
         })
 
         test("generates instance method names for each module", () => {
             const spy = jest.spyOn(utils, "getInstanceMethodNames")
-            ts.register([tsm])
+            testSitka.register([testCounterModule])
 
             expect(spy).toHaveBeenCalled()
 
-            const appModules = ts.getModules()
-            const numberOfModules = Object.keys(appModules).length
+            const modules: AppModules = testSitka.getModules()
+            const numberOfModules: number = Object.keys(modules).length
 
             expect(numberOfModules).toBe(1)
             expect(spy.mock.calls.length).toEqual(numberOfModules)
@@ -166,7 +167,7 @@ describe("Sitka", () => {
             }
 
             // set private property as a mock
-            const mockedDispatchFn = sitka["doDispatch"] = jest.fn()
+            const mockedDispatchFn: jest.Mock<{}> = sitka["doDispatch"] = jest.fn()
             sitka.testDoDispatch(action)
 
             expect(mockedDispatchFn).toHaveBeenLastCalledWith(action)
