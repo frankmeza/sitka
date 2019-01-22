@@ -100,6 +100,23 @@ describe("Sitka", () => {
         const ts = new TestSitka()
         const tsm = new TestSitkaModule()
 
+        test("registers SitkaModules", () => {
+            // before registering a module
+            const modules = ts.getModules()
+            const numberOfModules = Object.keys(modules).length
+            expect(numberOfModules).toEqual(0)
+
+            ts.register([tsm])
+
+            // after registering a module
+            const modulesUpdated = ts.getModules()
+            const numberOfModulesUpdated = Object.keys(modulesUpdated).length
+            expect(numberOfModulesUpdated).toEqual(1)
+
+            // the module registered is tsm
+            expect(modulesUpdated.counter).toEqual(tsm)
+        })
+
         test("generates instance method names for each module", () => {
             const spy = jest.spyOn(utils, "getInstanceMethodNames")
             ts.register([tsm])
@@ -113,7 +130,7 @@ describe("Sitka", () => {
             expect(spy.mock.calls.length).toEqual(numberOfModules)
         })
 
-        // needs way more tests...
+        // needs more tests...
     })
 
     describe("private getDefaultState()", () => {
