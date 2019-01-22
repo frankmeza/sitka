@@ -98,10 +98,11 @@ describe("Sitka", () => {
     })
 
     describe("public register()", () => {
-        const testSitka = new TestSitka()
-        const testCounterModule = new TestSitkaModule()
 
         test("registers SitkaModules", () => {
+            const testSitka = new TestSitka()
+            const testCounterModule = new TestSitkaModule()
+
             // before registering a module
             const modules: AppModules = testSitka.getModules()
             const numberOfModules: number = Object.keys(modules).length
@@ -119,23 +120,29 @@ describe("Sitka", () => {
         })
 
         test("registers SitkaModules", () => {
+            const testSitka = new TestSitka()
+            const testCounterModule = new TestSitkaModule()
+
             // before registering a module
-            const modules = ts.getModules()
+            const modules = testSitka.getModules()
             const numberOfModules = Object.keys(modules).length
             expect(numberOfModules).toEqual(0)
 
-            ts.register([tsm])
+            testSitka.register([testCounterModule])
 
             // after registering a module
-            const modulesUpdated = ts.getModules()
+            const modulesUpdated = testSitka.getModules()
             const numberOfModulesUpdated = Object.keys(modulesUpdated).length
             expect(numberOfModulesUpdated).toEqual(1)
 
-            // the module registered is tsm
-            expect(modulesUpdated.counter).toEqual(tsm)
+            // the module registered is testCounterModule
+            expect(modulesUpdated.counter).toEqual(testCounterModule)
         })
 
         test("generates instance method names for each module", () => {
+            const testSitka = new TestSitka()
+            const testCounterModule = new TestSitkaModule()
+
             const spy = jest.spyOn(utils, "getInstanceMethodNames")
             testSitka.register([testCounterModule])
 
