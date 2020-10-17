@@ -75,11 +75,15 @@ export class Sitka<MODULES = {}> {
             __sitka__: includeSitka ? this : undefined,
         };
 
-        const middleware = includeLogging ? [...this.middlewareToAdd, logger] : this.middlewareToAdd;
+        const middleware = includeLogging
+            ? [...this.middlewareToAdd, logger]
+            : this.middlewareToAdd;
 
         const reducersToCombine = {
             ...this.reducersToCombine,
-            __sitka__: includeSitka ? ((state: this | null = null): this | null => state) : undefined,
+            __sitka__: includeSitka
+                ? ((state: this | null = null): this | null => state)
+                : undefined,
         };
 
         return {
@@ -108,6 +112,7 @@ export class Sitka<MODULES = {}> {
         } else {
             // use own appstore creator
             const meta = this.createSitkaMeta();
+
             const store = createAppStore({
                 initialState: meta.defaultState,
                 reducersToCombine: [meta.reducersToCombine],
@@ -115,7 +120,9 @@ export class Sitka<MODULES = {}> {
                 sagaRoot: meta.sagaRoot,
                 log: this.sitkaOptions && this.sitkaOptions.log === true,
             });
+
             this.dispatch = store.dispatch;
+
             return store;
         }
     }
@@ -132,15 +139,13 @@ export class Sitka<MODULES = {}> {
                 instance,
                 Object.prototype,
             );
-            const handlers = methodNames.filter(m => m.indexOf("handle") === 0);
 
-            const { moduleName } = instance;
             const {
-                middlewareToAdd,
-                sagas,
-                forks,
-                reducersToCombine,
                 doDispatch: dispatch,
+                forks,
+                middlewareToAdd,
+                reducersToCombine,
+                sagas,
             } = this;
 
             instance.modules = this.getModules();
@@ -148,8 +153,14 @@ export class Sitka<MODULES = {}> {
 
             middlewareToAdd.push(...instance.provideMiddleware());
 
-            instance.provideForks().forEach(f => {
-                forks.push(f.bind(instance));
+            instance.provideForks().forEach(fork => {
+                forks.push(fork.bind(instance));
+            });
+
+            const { moduleName } = instance;
+
+            const handlers = methodNames.filter(methodName => {
+                return methodName.indexOf("handle") === 0;
             });
 
             handlers.forEach(s => {
@@ -173,8 +184,10 @@ export class Sitka<MODULES = {}> {
                     handler: original,
                     name: createHandlerKey(moduleName, s),
                 });
+
                 // tslint:disable-next-line:no-any
                 instance[s] = patched;
+
                 this.handlerOriginalFunctionMap.set(patched, {
                     handlerKey,
                     fn: original,
@@ -196,7 +209,7 @@ export class Sitka<MODULES = {}> {
                         return state;
                     }
 
-                    const type = createStateChangeKey(moduleName);
+                    const changeKey = createStateChangeKey(moduleName);
                     const payload = action.payload;
 
                     if (!!payload) {
@@ -204,21 +217,22 @@ export class Sitka<MODULES = {}> {
                     }
 
                     const newState: ModuleState = Object.keys(action)
-                        .filter(k => k !== "type")
-                        .reduce((acc, k) => {
-                            const val = action[k];
-                            if (k === type) {
+                        .filter(key => key !== "type")
+                        .reduce((acc, key) => {
+                            const val = action[key];
+
+                            if (key === changeKey) {
                                 return val;
                             }
 
                             if (val === null || typeof val === "undefined") {
                                 return Object.assign(acc, {
-                                    [k]: null,
+                                    [key]: null,
                                 });
                             }
 
                             return Object.assign(acc, {
-                                [k]: val,
+                                [key]: val,
                             });
                         }, Object.assign({}, state)) as ModuleState;
 
@@ -250,17 +264,18 @@ export class Sitka<MODULES = {}> {
 
             // generators
             for (let i = 0; i < sagas.length; i++) {
-                const s: SagaMeta = sagas[i];
-                if (s.direct) {
-                    const item: any = yield takeEvery(s.name, s.handler);
+                const sagaMeta: SagaMeta = sagas[i];
+
+                if (sagaMeta.direct) {
+                    const item: any = yield takeEvery(sagaMeta.name, sagaMeta.handler);
                     toYield.push(item);
                 } else {
                     const generator = function* (action: SitkaAction): {} {
-                        const instance: {} =
-                            registeredModules[action._moduleId];
-                        yield apply(instance, s.handler, action._args);
+                        const instance: {} = registeredModules[action._moduleId];
+                        yield apply(instance, sagaMeta.handler, action._args);
                     };
-                    const item: any = yield takeEvery(s.name, generator);
+
+                    const item: any = yield takeEvery(sagaMeta.name, generator);
                     toYield.push(item);
                 }
             }
@@ -281,6 +296,7 @@ export class Sitka<MODULES = {}> {
 
     private doDispatch (action: Action): void {
         const { dispatch } = this;
+
         if (!!dispatch) {
             dispatch(action);
         } else {
@@ -290,12 +306,16 @@ export class Sitka<MODULES = {}> {
 
     private getDefaultState (): {} {
         const modules = this.getModules();
-        return Object.keys(modules).map(k => modules[k]).reduce(
-            (acc: {}, m: SitkaModule<{} | null, MODULES>) => ({
-                ...acc,
-                [m.moduleName]: m.defaultState,
-            }),
-            {},
+
+        const defaultState = Object.keys(modules).map(key => modules[key]).reduce(
+            (acc: {}, module: SitkaModule<{} | null, MODULES>) => {
+                return {
+                    ...acc,
+                    [module.moduleName]: module.defaultState,
+                }
+            }, {},
         );
+
+        return defaultState;
     }
 }
