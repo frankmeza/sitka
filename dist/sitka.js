@@ -37,24 +37,39 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
+var __spreadArrays = (this && this.__spreadArrays) || function () {
+    for (var s = 0, i = 0, il = arguments.length; i < il; i++) s += arguments[i].length;
+    for (var r = Array(s), k = 0, i = 0; i < il; i++)
+        for (var a = arguments[i], j = 0, jl = a.length; j < jl; j++, k++)
+            r[k] = a[j];
+    return r;
+};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.createAppStore = exports.Sitka = exports.SitkaMeta = exports.SitkaModule = void 0;
 var redux_1 = require("redux");
 var redux_logger_1 = require("redux-logger");
 var redux_saga_1 = __importDefault(require("redux-saga"));
 var effects_1 = require("redux-saga/effects");
-var createStateChangeKey = function (module) { return ("module_" + module + "_change_state").toUpperCase(); };
-var createHandlerKey = function (module, handler) { return ("module_" + module + "_" + handler).toUpperCase(); };
+var createStateChangeKey = function (module) {
+    return ("module_" + module + "_change_state").toUpperCase();
+};
+var createHandlerKey = function (module, handler) {
+    return ("module_" + module + "_" + handler).toUpperCase();
+};
 var SitkaModule = /** @class */ (function () {
     function SitkaModule() {
+        this.handlerOriginalFunctionMap = new Map();
+        this.getState = this.getState.bind(this);
+        this.mergeState = this.mergeState.bind(this);
     }
     // by default, the redux key is same as the moduleName
     SitkaModule.prototype.reduxKey = function () {
         return this.moduleName;
     };
-    SitkaModule.prototype.createAction = function (v) {
+    SitkaModule.prototype.createAction = function (v, usePayload) {
         var _a, _b;
         var type = createStateChangeKey(this.reduxKey());
         if (!v) {
@@ -64,24 +79,80 @@ var SitkaModule = /** @class */ (function () {
             return _b = { type: type }, _b[type] = v, _b;
         }
         else {
+            if (usePayload) {
+                return {
+                    type: type,
+                    payload: v,
+                };
+            }
             return Object.assign({ type: type }, v);
         }
     };
-    SitkaModule.prototype.setState = function (state) {
-        return this.createAction(state);
+    SitkaModule.prototype.setState = function (state, replace) {
+        return this.createAction(state, replace);
     };
-    SitkaModule.prototype.createSubscription = function (actionType, handler) {
-        return {
-            name: actionType,
-            handler: handler,
-            direct: true,
-        };
+    SitkaModule.prototype.resetState = function () {
+        return this.setState(this.defaultState);
+    };
+    SitkaModule.prototype.getState = function (state) {
+        return state[this.reduxKey()];
+    };
+    SitkaModule.prototype.mergeState = function (partialState) {
+        var currentState, newState;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0: return [4 /*yield*/, effects_1.select(this.getState)];
+                case 1:
+                    currentState = _a.sent();
+                    newState = __assign(__assign({}, currentState), partialState);
+                    return [4 /*yield*/, effects_1.put(this.setState(newState))];
+                case 2:
+                    _a.sent();
+                    return [2 /*return*/];
+            }
+        });
+    };
+    // can be either the action type string, or the module function to watch
+    SitkaModule.prototype.createSubscription = function (actionTarget, handler) {
+        if (typeof actionTarget === "string") {
+            return {
+                name: actionTarget,
+                handler: handler,
+                direct: true,
+            };
+        }
+        else {
+            var generatorContext = this.handlerOriginalFunctionMap.get(actionTarget);
+            return {
+                name: generatorContext.handlerKey,
+                handler: handler,
+                direct: true,
+            };
+        }
     };
     SitkaModule.prototype.provideMiddleware = function () {
         return [];
     };
     SitkaModule.prototype.provideSubscriptions = function () {
         return [];
+    };
+    SitkaModule.prototype.provideForks = function () {
+        return [];
+    };
+    SitkaModule.prototype.callAsGenerator = function (fn) {
+        var _i, generatorContext;
+        var rest = [];
+        for (_i = 1; _i < arguments.length; _i++) {
+            rest[_i - 1] = arguments[_i];
+        }
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    generatorContext = this.handlerOriginalFunctionMap.get(fn);
+                    return [4 /*yield*/, effects_1.apply(generatorContext.context, generatorContext.fn, rest)];
+                case 1: return [2 /*return*/, _a.sent()];
+            }
+        });
     };
     return SitkaModule;
 }());
@@ -95,12 +166,15 @@ var SitkaMeta = /** @class */ (function () {
 exports.SitkaMeta = SitkaMeta;
 // tslint:disable-next-line:max-classes-per-file
 var Sitka = /** @class */ (function () {
-    function Sitka() {
+    function Sitka(sitkaOptions) {
         // tslint:disable-next-line:no-any
         this.sagas = [];
+        this.forks = [];
         // tslint:disable-next-line:no-any
         this.reducersToCombine = {};
         this.middlewareToAdd = [];
+        this.handlerOriginalFunctionMap = new Map();
+        this.sitkaOptions = sitkaOptions;
         this.doDispatch = this.doDispatch.bind(this);
         this.createStore = this.createStore.bind(this);
         this.createRoot = this.createRoot.bind(this);
@@ -113,14 +187,37 @@ var Sitka = /** @class */ (function () {
         return this.registeredModules;
     };
     Sitka.prototype.createSitkaMeta = function () {
+        // by default, we include sitka object in the meta
+        var includeSitka = 
+        // if no options
+        !this.sitkaOptions ||
+            // if options were provided, but sitkaInStore is not defined
+            this.sitkaOptions.sitkaInState === undefined ||
+            // if sitkaInStore is defined, and its not explicitly set to don't include
+            this.sitkaOptions.sitkaInState !== false;
+        var includeLogging = !!this.sitkaOptions && this.sitkaOptions.log === true;
+        var logger = redux_logger_1.createLogger({
+            stateTransformer: function (state) { return state; },
+        });
+        var sagaRoot = this.createRoot();
         return {
-            defaultState: __assign({}, this.getDefaultState(), { __sitka__: this }),
-            middleware: this.middlewareToAdd,
-            reducersToCombine: __assign({}, this.reducersToCombine, { __sitka__: function (state) {
+            defaultState: includeSitka ? __assign(__assign({}, this.getDefaultState()), { __sitka__: this }) : __assign({}, this.getDefaultState()),
+            middleware: includeLogging ? __spreadArrays(this.middlewareToAdd, [logger]) :
+                this.middlewareToAdd,
+            reducersToCombine: includeSitka ? __assign(__assign({}, this.reducersToCombine), { __sitka__: function (state) {
                     if (state === void 0) { state = null; }
                     return state;
-                } }),
-            sagaRoot: this.createRoot(),
+                } }) : __assign({}, this.reducersToCombine),
+            sagaRoot: sagaRoot,
+            sagaProvider: function () {
+                var middleware = redux_saga_1.default();
+                return {
+                    middleware: middleware,
+                    activate: function () {
+                        middleware.run(sagaRoot);
+                    },
+                };
+            },
         };
     };
     Sitka.prototype.createStore = function (appstoreCreator) {
@@ -132,7 +229,13 @@ var Sitka = /** @class */ (function () {
         else {
             // use own appstore creator
             var meta = this.createSitkaMeta();
-            var store = exports.createAppStore(meta.defaultState, [meta.reducersToCombine], meta.middleware, meta.sagaRoot);
+            var store = exports.createAppStore({
+                initialState: meta.defaultState,
+                reducersToCombine: [meta.reducersToCombine],
+                middleware: meta.middleware,
+                sagaRoot: meta.sagaRoot,
+                log: this.sitkaOptions && this.sitkaOptions.log === true,
+            });
             this.dispatch = store.dispatch;
             return store;
         }
@@ -142,21 +245,24 @@ var Sitka = /** @class */ (function () {
         instances.forEach(function (instance) {
             var methodNames = getInstanceMethodNames(instance, Object.prototype);
             var handlers = methodNames.filter(function (m) { return m.indexOf("handle") === 0; });
-            var subscribers = instance.provideSubscriptions();
             var moduleName = instance.moduleName;
-            var _a = _this, middlewareToAdd = _a.middlewareToAdd, sagas = _a.sagas, reducersToCombine = _a.reducersToCombine, dispatch = _a.doDispatch;
+            var _a = _this, middlewareToAdd = _a.middlewareToAdd, sagas = _a.sagas, forks = _a.forks, reducersToCombine = _a.reducersToCombine, dispatch = _a.doDispatch;
             instance.modules = _this.getModules();
-            sagas.push.apply(sagas, subscribers);
+            instance.handlerOriginalFunctionMap = _this.handlerOriginalFunctionMap;
             middlewareToAdd.push.apply(middlewareToAdd, instance.provideMiddleware());
+            instance.provideForks().forEach(function (f) {
+                forks.push(f.bind(instance));
+            });
             handlers.forEach(function (s) {
                 // tslint:disable:ban-types
                 var original = instance[s]; // tslint:disable:no-any
+                var handlerKey = createHandlerKey(moduleName, s);
                 function patched() {
                     var args = arguments;
                     var action = {
                         _args: args,
                         _moduleId: moduleName,
-                        type: createHandlerKey(moduleName, s),
+                        type: handlerKey,
                     };
                     dispatch(action);
                 }
@@ -166,37 +272,54 @@ var Sitka = /** @class */ (function () {
                 });
                 // tslint:disable-next-line:no-any
                 instance[s] = patched;
+                _this.handlerOriginalFunctionMap.set(patched, {
+                    handlerKey: handlerKey,
+                    fn: original,
+                    context: instance,
+                });
             });
-            // create reducer
-            var reduxKey = instance.reduxKey();
-            var defaultState = instance.defaultState;
-            var actionType = createStateChangeKey(reduxKey);
-            reducersToCombine[reduxKey] = function (state, action) {
-                if (state === void 0) { state = defaultState; }
-                if (action.type !== actionType) {
-                    return state;
-                }
-                var type = createStateChangeKey(moduleName);
-                var newState = Object.keys(action)
-                    .filter(function (k) { return k !== "type"; })
-                    .reduce(function (acc, k) {
-                    var _a, _b;
-                    var val = action[k];
-                    if (k === type) {
-                        return val;
+            if (instance.defaultState !== undefined) {
+                // create reducer
+                var reduxKey = instance.reduxKey();
+                var defaultState_1 = instance.defaultState;
+                var actionType_1 = createStateChangeKey(reduxKey);
+                reducersToCombine[reduxKey] = function (state, action) {
+                    if (state === void 0) { state = defaultState_1; }
+                    if (action.type !== actionType_1) {
+                        return state;
                     }
-                    if (val === null || typeof val === "undefined") {
-                        return Object.assign(acc, (_a = {},
-                            _a[k] = null,
-                            _a));
+                    var type = createStateChangeKey(moduleName);
+                    var payload = action.payload;
+                    if (!!payload) {
+                        return payload;
                     }
-                    return Object.assign(acc, (_b = {},
-                        _b[k] = val,
-                        _b));
-                }, Object.assign({}, state));
-                return newState;
-            };
+                    var newState = Object.keys(action)
+                        .filter(function (k) { return k !== "type"; })
+                        .reduce(function (acc, k) {
+                        var _a, _b;
+                        var val = action[k];
+                        if (k === type) {
+                            return val;
+                        }
+                        if (val === null || typeof val === "undefined") {
+                            return Object.assign(acc, (_a = {},
+                                _a[k] = null,
+                                _a));
+                        }
+                        return Object.assign(acc, (_b = {},
+                            _b[k] = val,
+                            _b));
+                    }, Object.assign({}, state));
+                    return newState;
+                };
+            }
             _this.registeredModules[moduleName] = instance;
+        });
+        // do subscribers after all has been registered
+        instances.forEach(function (instance) {
+            var sagas = _this.sagas;
+            var subscribers = instance.provideSubscriptions();
+            sagas.push.apply(sagas, subscribers);
         });
     };
     Sitka.prototype.getDefaultState = function () {
@@ -205,13 +328,13 @@ var Sitka = /** @class */ (function () {
             .map(function (k) { return modules[k]; })
             .reduce(function (acc, m) {
             var _a;
-            return (__assign({}, acc, (_a = {}, _a[m.moduleName] = m.defaultState, _a)));
+            return (__assign(__assign({}, acc), (_a = {}, _a[m.moduleName] = m.defaultState, _a)));
         }, {});
     };
     Sitka.prototype.createRoot = function () {
-        var _a = this, sagas = _a.sagas, registeredModules = _a.registeredModules;
+        var _a = this, sagas = _a.sagas, forks = _a.forks, registeredModules = _a.registeredModules;
         function root() {
-            var toYield, _loop_1, i;
+            var toYield, _loop_1, i, i, f, item;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -262,9 +385,15 @@ var Sitka = /** @class */ (function () {
                     case 3:
                         i++;
                         return [3 /*break*/, 1];
-                    case 4: 
-                    /* tslint:enable */
-                    return [4 /*yield*/, effects_1.all(toYield)];
+                    case 4:
+                        // forks
+                        for (i = 0; i < forks.length; i++) {
+                            f = forks[i];
+                            item = effects_1.fork(f);
+                            toYield.push(item);
+                        }
+                        /* tslint:enable */
+                        return [4 /*yield*/, effects_1.all(toYield)];
                     case 5:
                         /* tslint:enable */
                         _a.sent();
@@ -279,22 +408,24 @@ var Sitka = /** @class */ (function () {
         if (!!dispatch) {
             dispatch(action);
         }
+        else {
+            alert("no dispatch");
+        }
     };
     return Sitka;
 }());
 exports.Sitka = Sitka;
-exports.createAppStore = function (intialState, reducersToCombine, middleware, sagaRoot) {
-    if (intialState === void 0) { intialState = {}; }
-    if (reducersToCombine === void 0) { reducersToCombine = []; }
-    if (middleware === void 0) { middleware = []; }
+exports.createAppStore = function (options) {
+    var _a = options.initialState, initialState = _a === void 0 ? {} : _a, _b = options.reducersToCombine, reducersToCombine = _b === void 0 ? [] : _b, _c = options.middleware, middleware = _c === void 0 ? [] : _c, sagaRoot = options.sagaRoot, _d = options.log, log = _d === void 0 ? false : _d, _e = options.storeEnhancers, storeEnhancers = _e === void 0 ? [] : _e;
     var logger = redux_logger_1.createLogger({
         stateTransformer: function (state) { return state; },
     });
     var sagaMiddleware = redux_saga_1.default();
-    var commonMiddleware = [sagaMiddleware, logger];
-    var appReducer = reducersToCombine.reduce(function (acc, r) { return (__assign({}, acc, r)); }, {});
-    var combinedMiddleware = commonMiddleware.concat(middleware);
-    var store = redux_1.createStore(redux_1.combineReducers(appReducer), intialState, redux_1.applyMiddleware.apply(void 0, combinedMiddleware));
+    var commonMiddleware = log ? [sagaMiddleware, logger] :
+        [sagaMiddleware];
+    var appReducer = reducersToCombine.reduce(function (acc, r) { return (__assign(__assign({}, acc), r)); }, {});
+    var combinedMiddleware = __spreadArrays(commonMiddleware, middleware);
+    var store = redux_1.createStore(redux_1.combineReducers(appReducer), initialState, redux_1.compose.apply(void 0, __spreadArrays(storeEnhancers, [redux_1.applyMiddleware.apply(void 0, combinedMiddleware)])));
     if (sagaRoot) {
         sagaMiddleware.run(sagaRoot);
     }

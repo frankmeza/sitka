@@ -4,7 +4,9 @@
 
 This library allows you to construct strongly typed APIs for managing your Redux store. You can use it to package up related behavior into Typescript classes, which can be injected into your Redux store for easy access throughout your application.
 
-The Sitka Redux package manager can be used in many different contexts, including React apps, Electron apps, and more. A canonical use of this library can be found in the Sitka Monorepo (https://github.com/olioapps/sitka-monorepo).
+The Sitka Redux package manager can be used in many different contexts, including React apps, Electron apps, and more. A canonical use of this library can be found in https://github.com/frankmeza/sitka-counter-ts, a simple counter app illustrating how Sitka can be used in a React Web app.
+
+The Sitka Monorepo (https://github.com/olioapps/sitka-monorepo) also illustrates how you can use Sitka inside larger Redux based apps.
 
 ## Whats a Sitka Redux Module?
 
@@ -25,11 +27,9 @@ The library needs to know the type of your modules, hence providing the type par
 You can register you modules via a simple register method on the sitka instance:
 
 ```typescript
-sitka.register(
-    [
-        new ColorModule(),
-    ]
-)
+sitka.register([
+    new ColorModule(),
+])
 ```
 
 ## Example Sitka Redux Module
@@ -62,6 +62,8 @@ sitka.handleColor("red")
 
 Invoking `handleColor` will instruct the sitka package manager to dispatch an action which will call the generator function defined in `ColorModule`. The generator function can then produce futher effects, such as the `setState` function which will mutate the Redux state tree for the piece of state idenfied by the `moduleName` class attribute. You can alternatively specify a different key to manage by overriding the `reduxKey()`.
 
+Any Sitka module generator function whose name is prefixed with `handle` will be wrapped in an action and can be invoked directly from client code such as React components.
+
 ## Using the Sikta Module Manager
 
 The module manager can be used to integrate with an existing Redux store, or to entire manage the store by itself. The simplest case is the latter, where the store shape and the API for mutating it is entirely managed by Sitka modules.
@@ -80,56 +82,7 @@ const store = sitka.createStore()
 This instance of the Redux store can be injected into your application, for example using `react-Redux`. Please see the section below for an example of how to use Sitka modules within a React application.
 
 ### Adding Sitka to a Redux store
-
-In the example below, we are using Redux's `createStore` function to create a store. We provide for its arguments a merging of the reducers, sagas, and middleware returned from Sitka's `createSitkaMeta` function, with those you create normally. 
-
-```typescript
-// ask sitka for store-relevant pieces based on registered modules
-const sitkaMeta = sitka.createSitkaMeta()
-
-const initialState = {
-    ...sitkaMeta.defaultState,
-    // initial state for non-sitka managed modules
-    { counter: 0 },
-}
-
-const reducersToCombine = [
-    ...sitkaMeta.reducersToCombine,
-    // reducers for non-sitka managed modules
-    counter: (s = initialState.counter, a: { type: "INC" } ): number => a.type === "INC" : s + 1 : s    
-]
-
-// non-sitka generator function
-function* incrementSaga(): IteratorIterable<{}> {
-    yield put(() => { type: "INC" })
-}
-
-const middleware = [
-    ...sitkaMeta.middleware,
-    // middleware for non-sitka managed modules
-    (store: MiddlewareAPI<Dispatch, {}>) => (next: Function) => (action: Action) => next(action)
-]
-
-function* sagaRoot(): IterableIterator<{}> {
-    yield all[ yield takeEvery("HANDLE_INC", incrementSaga) ]
-    yield call(sitkaMeta.sagaRoot)
-}
-
-const combinedMiddleware = [ createSagaMiddleware(), ...middleware ]
-
-const store: Store = createStore(
-    combineReducers(reducersToCombine.reduce((acc, r) => ({...acc, ...r}), {})),
-    initialState,
-    applyMiddleware(...combinedMiddleware),
-)
-
-// sitka needs a handle to the store's dispatch function
-sitka.setDispatch(store.dispatch)
-
-sagaMiddleware.run(sagaRoot)
-```
-
-The primary usecase for the above is to enhance a pre-exising Redux store with sitka managed Redux modules.
+See the wiki (https://github.com/olioapps/sitka/wiki/Adding-Sitka-to-a-Redux-store) for an example of how to integrate Sitka with an existing Redux storer.
 
 ## Using Sitka managed Redux modules
 
@@ -156,52 +109,4 @@ console.log(store.getState())
 ```
 
 ### React web usage
-When `createStore` or `createSitkaMeta` is called on a Sitka instance, the instance itself is automatically added to the
-Redux store under the key `__sitka__` so it can be conveniently accessed. Redux connected components can access the instance
-via that key, and invoke any of the methods available to the modules. As before, this will automatically dispatch that action.
-
-In the entry point of your React app (usually `index.tsx` or `index.jsx`), create the Sitka-connected store, and pass it to
-the rest of your app using `react-Redux` connect:
-```tsx
-const store: Store = createCoreAppStore()
-
-ReactDOM.render(
-    <Provider store={store}>
-        <App />
-    </Provider>,
-    document.getElementById("root") as HTMLElement,
-)
-```
-
-Inside of a connected Component, pull the Sitka instance out of the store, and expose it to click handlers: 
-```tsx
-interface ComponentProps {
-    readonly color: ColorState
-    readonly handleColor: (color: string) => void
-}
-class App extends React.Component<ComponentProps> {
-    constructor(props: ComponentProps) {
-        super(props)
-    }
-
-    public render(): JSX.Element {
-        return (
-            <div>
-                <span>Color {this.props.color}</span>
-                <button id="increment" onClick={() => this.props.handleColor("red")}>
-                    Update color
-                </button>
-            </div>
-        )
-    }
-}
-
-export default connect(
-    (state: AppState): ReduxState => ({
-        color: state.color,
-        handleColor: state.__sitka__.getModules().color.handleColor,
-    })
-    null,
-)(App)
-
-```
+Using Sitka modules inside React applications is easy! Check out https://github.com/olioapps/sitka/wiki/React-web-usage for an example. You can also head over to https://github.com/frankmeza/sitka-counter-ts for an example of a simple repo using Sitka modules.
