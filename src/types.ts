@@ -8,7 +8,7 @@ import {
 import { SagaMiddleware } from "redux-saga";
 import { CallEffectFn } from "redux-saga/effects";
 
-export interface PayloadAction extends Action {
+export type PayloadAction = Action & {
     readonly payload?: {};
 }
 
@@ -18,25 +18,25 @@ export type SitkaModuleAction<T> =
 
 export type ModuleState = {} | undefined | null;
 
-export interface GeneratorContext {
+export type GeneratorContext = {
     readonly handlerKey: string;
     readonly fn: CallEffectFn<any>;
     readonly context: {};
 }
 
-export interface SitkaSagaMiddlewareProvider {
+export type SitkaSagaMiddlewareProvider = {
     middleware: SagaMiddleware<{}>;
     activate: () => void;
 }
 
-export interface SagaMeta {
+export type SagaMeta = {
     // tslint:disable-next-line:no-any
     readonly handler: any;
     readonly name: string;
     readonly direct?: boolean;
 }
 
-export interface SitkaAction extends Action {
+export type SitkaAction = Action & {
     _moduleId: string;
     // tslint:disable-next-line:no-any
     _args: any;
@@ -53,12 +53,12 @@ export class SitkaMeta {
 
 export type AppStoreCreator = (sitaMeta: SitkaMeta) => Store;
 
-export interface SitkaOptions {
+export type SitkaOptions = {
     readonly log?: boolean;
     readonly sitkaInState?: boolean;
 }
 
-export interface StoreOptions {
+export type StoreOptions = {
     readonly initialState?: {};
     readonly reducersToCombine?: ReducersMapObject[];
     readonly storeEnhancers?: StoreEnhancer[];
