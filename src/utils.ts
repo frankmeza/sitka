@@ -1,4 +1,54 @@
-import snakeCase from "lodash.snakecase"
+import snakeCase from "lodash.snakecase";
+import {
+    Store,
+    Middleware,
+    createStore,
+    combineReducers,
+    DeepPartial,
+    compose,
+    applyMiddleware,
+} from "redux";
+import { createLogger } from "redux-logger";
+import createSagaMiddleware, { SagaMiddleware } from "redux-saga";
+
+import { StoreOptions } from "./types";
+
+export const createAppStore = (options: StoreOptions): Store => {
+    const {
+        initialState = {},
+        reducersToCombine = [],
+        middleware = [],
+        sagaRoot,
+        log = false,
+        storeEnhancers = [],
+    } = options;
+
+    const logger: Middleware = createLogger({
+        stateTransformer: (state: {}) => state,
+    });
+    const sagaMiddleware: SagaMiddleware<{}> = createSagaMiddleware();
+    const commonMiddleware: ReadonlyArray<Middleware> =
+        log ? [sagaMiddleware, logger] :
+        [sagaMiddleware];
+    const appReducer = reducersToCombine.reduce(
+        (acc, r) => ({ ...acc, ...r }),
+        {},
+    );
+
+    const combinedMiddleware = [...commonMiddleware, ...middleware];
+
+    const store: Store = createStore(
+        combineReducers(appReducer),
+        initialState as DeepPartial<{}>,
+        compose(...storeEnhancers, applyMiddleware(...combinedMiddleware)),
+    );
+
+    if (sagaRoot) {
+        sagaMiddleware.run(<any>sagaRoot);
+    }
+
+    return store;
+};
 
 export const createStateChangeKey = (module: string) =>
     `module_${module}_change_state`.toUpperCase();
