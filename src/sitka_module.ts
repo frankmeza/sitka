@@ -1,6 +1,7 @@
 import { Action, Middleware } from "redux";
 import { select, put, CallEffectFn, apply } from "redux-saga/effects";
 import { ModuleState, GeneratorContext, SitkaModuleAction, SagaMeta } from "./types";
+import { createStateChangeKey } from "./utils";
 
 export abstract class SitkaModule<MODULE_STATE extends ModuleState, MODULES> {
     public modules: MODULES;
