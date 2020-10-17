@@ -1,31 +1,17 @@
-import {
-    Action,
-    applyMiddleware,
-    combineReducers,
-    createStore,
-    DeepPartial,
-    Dispatch,
-    Middleware,
-    ReducersMapObject,
-    Store,
-    StoreEnhancer,
-    compose,
-} from "redux";
+import { Action, Dispatch, Middleware, ReducersMapObject, Store } from "redux";
 import { createLogger } from "redux-logger";
-import { SagaMiddleware } from "redux-saga";
 import createSagaMiddleware from "redux-saga";
 import {
     all,
     apply,
-    select,
-    put,
     takeEvery,
-    take,
     fork,
     ForkEffect,
     CallEffectFn,
 } from "redux-saga/effects";
+
 import { SitkaModule } from "./sitka_module";
+
 import {
     SagaMeta,
     SitkaOptions,
@@ -35,22 +21,28 @@ import {
     AppStoreCreator,
     ModuleState,
     PayloadAction,
-    StoreOptions,
     SitkaAction,
 } from "./types";
-import { createHandlerKey, createStateChangeKey, getInstanceMethodNames } from "./utils";
+
+import {
+    createHandlerKey,
+    createStateChangeKey,
+    getInstanceMethodNames,
+} from "./utils";
 
 export class Sitka<MODULES = {}> {
-    // tslint:disable-next-line:no-any
-    private sagas: SagaMeta[] = [];
     private forks: CallEffectFn<any>[] = [];
+    private middlewareToAdd: Middleware[] = [];
     // tslint:disable-next-line:no-any
     private reducersToCombine: ReducersMapObject = {};
-    private middlewareToAdd: Middleware[] = [];
+    // tslint:disable-next-line:no-any
+    private sagas: SagaMeta[] = [];
+
     protected registeredModules: MODULES;
+
     private dispatch?: Dispatch;
-    private sitkaOptions: SitkaOptions;
     private handlerOriginalFunctionMap = new Map<Function, GeneratorContext>();
+    private sitkaOptions: SitkaOptions;
 
     constructor (sitkaOptions?: SitkaOptions) {
         this.sitkaOptions = sitkaOptions;
@@ -58,14 +50,6 @@ export class Sitka<MODULES = {}> {
         this.createStore = this.createStore.bind(this);
         this.createRoot = this.createRoot.bind(this);
         this.registeredModules = {} as MODULES;
-    }
-
-    public setDispatch (dispatch: Dispatch): void {
-        this.dispatch = dispatch;
-    }
-
-    public getModules (): MODULES {
-        return this.registeredModules;
     }
 
     public createSitkaMeta (): SitkaMeta {
@@ -139,6 +123,10 @@ export class Sitka<MODULES = {}> {
             this.dispatch = store.dispatch;
             return store;
         }
+    }
+
+    public getModules (): MODULES {
+        return this.registeredModules;
     }
 
     public register<SITKA_MODULE extends SitkaModule<ModuleState, MODULES>> (
@@ -254,15 +242,8 @@ export class Sitka<MODULES = {}> {
         });
     }
 
-    private getDefaultState (): {} {
-        const modules = this.getModules();
-        return Object.keys(modules).map(k => modules[k]).reduce(
-            (acc: {}, m: SitkaModule<{} | null, MODULES>) => ({
-                ...acc,
-                [m.moduleName]: m.defaultState,
-            }),
-            {},
-        );
+    public setDispatch (dispatch: Dispatch): void {
+        this.dispatch = dispatch;
     }
 
     private createRoot (): (() => IterableIterator<{}>) {
@@ -311,41 +292,15 @@ export class Sitka<MODULES = {}> {
             alert("no dispatch");
         }
     }
-}
 
-export const createAppStore = (options: StoreOptions): Store => {
-    const {
-        initialState = {},
-        reducersToCombine = [],
-        middleware = [],
-        sagaRoot,
-        log = false,
-        storeEnhancers = [],
-    } = options;
-
-    const logger: Middleware = createLogger({
-        stateTransformer: (state: {}) => state,
-    });
-    const sagaMiddleware: SagaMiddleware<{}> = createSagaMiddleware();
-    const commonMiddleware: ReadonlyArray<Middleware> =
-        log ? [sagaMiddleware, logger] :
-        [sagaMiddleware];
-    const appReducer = reducersToCombine.reduce(
-        (acc, r) => ({ ...acc, ...r }),
-        {},
-    );
-
-    const combinedMiddleware = [...commonMiddleware, ...middleware];
-
-    const store: Store = createStore(
-        combineReducers(appReducer),
-        initialState as DeepPartial<{}>,
-        compose(...storeEnhancers, applyMiddleware(...combinedMiddleware)),
-    );
-
-    if (sagaRoot) {
-        sagaMiddleware.run(<any>sagaRoot);
+    private getDefaultState (): {} {
+        const modules = this.getModules();
+        return Object.keys(modules).map(k => modules[k]).reduce(
+            (acc: {}, m: SitkaModule<{} | null, MODULES>) => ({
+                ...acc,
+                [m.moduleName]: m.defaultState,
+            }),
+            {},
+        );
     }
-
-    return store;
-};
+}
