@@ -72,18 +72,22 @@ export class Sitka<MODULES = {}> {
 
         const defaultState = {
             ...this.getDefaultState(),
-            __sitka__: includeSitka ? this : undefined,
+            __sitka__:
+                includeSitka ? this :
+                undefined,
         };
 
-        const middleware = includeLogging
-            ? [...this.middlewareToAdd, logger]
-            : this.middlewareToAdd;
+        const middleware =
+            includeLogging ? [...this.middlewareToAdd, logger] :
+            this.middlewareToAdd;
+
+        const sitkaReducer = (state: this | null = null): this | null => state;
 
         const reducersToCombine = {
             ...this.reducersToCombine,
-            __sitka__: includeSitka
-                ? ((state: this | null = null): this | null => state)
-                : undefined,
+            __sitka__:
+                includeSitka ? sitkaReducer :
+                undefined,
         };
 
         return {
@@ -267,11 +271,15 @@ export class Sitka<MODULES = {}> {
                 const sagaMeta: SagaMeta = sagas[i];
 
                 if (sagaMeta.direct) {
-                    const item: any = yield takeEvery(sagaMeta.name, sagaMeta.handler);
+                    const item: any = yield takeEvery(
+                        sagaMeta.name,
+                        sagaMeta.handler,
+                    );
                     toYield.push(item);
                 } else {
                     const generator = function* (action: SitkaAction): {} {
-                        const instance: {} = registeredModules[action._moduleId];
+                        const instance: {} =
+                            registeredModules[action._moduleId];
                         yield apply(instance, sagaMeta.handler, action._args);
                     };
 
@@ -307,14 +315,14 @@ export class Sitka<MODULES = {}> {
     private getDefaultState (): {} {
         const modules = this.getModules();
 
-        const defaultState = Object.keys(modules).map(key => modules[key]).reduce(
-            (acc: {}, module: SitkaModule<{} | null, MODULES>) => {
+        const defaultState = Object.keys(modules)
+            .map(key => modules[key])
+            .reduce((acc: {}, module: SitkaModule<{} | null, MODULES>) => {
                 return {
                     ...acc,
                     [module.moduleName]: module.defaultState,
-                }
-            }, {},
-        );
+                };
+            }, {});
 
         return defaultState;
     }

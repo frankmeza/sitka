@@ -16,20 +16,23 @@ import { StoreOptions } from "./types";
 export const createAppStore = (options: StoreOptions): Store => {
     const {
         initialState = {},
-        reducersToCombine = [],
-        middleware = [],
-        sagaRoot,
         log = false,
+        middleware = [],
+        reducersToCombine = [],
+        sagaRoot,
         storeEnhancers = [],
     } = options;
 
     const logger: Middleware = createLogger({
         stateTransformer: (state: {}) => state,
     });
+
     const sagaMiddleware: SagaMiddleware<{}> = createSagaMiddleware();
+
     const commonMiddleware: ReadonlyArray<Middleware> =
         log ? [sagaMiddleware, logger] :
         [sagaMiddleware];
+
     const appReducer = reducersToCombine.reduce(
         (acc, r) => ({ ...acc, ...r }),
         {},
