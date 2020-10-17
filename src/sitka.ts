@@ -11,7 +11,6 @@ import {
 } from "redux-saga/effects";
 
 import { SitkaModule } from "./sitka_module";
-
 import {
     SagaMeta,
     SitkaOptions,
@@ -23,8 +22,8 @@ import {
     PayloadAction,
     SitkaAction,
 } from "./types";
-
 import {
+    createAppStore,
     createHandlerKey,
     createStateChangeKey,
     getInstanceMethodNames,
@@ -55,42 +54,38 @@ export class Sitka<MODULES = {}> {
     public createSitkaMeta (): SitkaMeta {
         // by default, we include sitka object in the meta
         const includeSitka =
-            // if no options
+            // if no options, or
             !this.sitkaOptions ||
-            // if options were provided, but sitkaInStore is not defined
+            // if options were provided, but sitkaInState is not defined, or
             this.sitkaOptions.sitkaInState === undefined ||
-            // if sitkaInStore is defined, and its not explicitly set to don't include
+            // if sitkaInState is defined, and is not explicitly set, then don't include it
             this.sitkaOptions.sitkaInState !== false;
 
         const includeLogging =
             !!this.sitkaOptions && this.sitkaOptions.log === true;
+
         const logger: Middleware = createLogger({
             stateTransformer: (state: {}) => state,
         });
 
         const sagaRoot = this.createRoot();
 
+        const defaultState = {
+            ...this.getDefaultState(),
+            __sitka__: includeSitka ? this : undefined,
+        };
+
+        const middleware = includeLogging ? [...this.middlewareToAdd, logger] : this.middlewareToAdd;
+
+        const reducersToCombine = {
+            ...this.reducersToCombine,
+            __sitka__: includeSitka ? ((state: this | null = null): this | null => state) : undefined,
+        };
+
         return {
-            defaultState:
-                includeSitka ? {
-                    ...this.getDefaultState(),
-                    __sitka__: this,
-                } :
-                {
-                    ...this.getDefaultState(),
-                },
-            middleware:
-                includeLogging ? [...this.middlewareToAdd, logger] :
-                this.middlewareToAdd,
-            reducersToCombine:
-                includeSitka ? {
-                    ...this.reducersToCombine,
-                    __sitka__: (state: this | null = null): this | null =>
-                        state,
-                } :
-                {
-                    ...this.reducersToCombine,
-                },
+            defaultState,
+            middleware,
+            reducersToCombine,
             sagaRoot,
             sagaProvider: (): SitkaSagaMiddlewareProvider => {
                 const middleware = createSagaMiddleware<{}>();
