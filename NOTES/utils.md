@@ -1,3 +1,5 @@
+## `function` createAppStore
+
 ```ts
 export const createAppStore = (options: StoreOptions): Store => {
     const {
@@ -40,15 +42,27 @@ export const createAppStore = (options: StoreOptions): Store => {
 };
 ```
 
+---
+
+## `function` createStateChangeKey
+
 ```ts
 export const createStateChangeKey = (module: string) =>
     `module_${module}_change_state`.toUpperCase();
 ```
 
+---
+
+## `function` createHandlerKey
+
 ```ts
 export const createHandlerKey = (module: string, handler: string) =>
     `module_${module}_${snakeCase(handler)}`.toUpperCase();
 ```
+
+---
+
+## `function` getInstanceMethodNames
 
 ```ts
 export const getInstanceMethodNames = (obj: {}, stop: {}) => {
@@ -71,9 +85,13 @@ export const getInstanceMethodNames = (obj: {}, stop: {}) => {
 };
 ```
 
+## `function` hasMethod
+
 ```ts
 const hasMethod = (obj: {}, name: string) => {
     const desc = Object.getOwnPropertyDescriptor(obj, name);
     return !!desc && typeof desc.value === "function";
 };
 ```
+
+---

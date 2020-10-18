@@ -1,3 +1,5 @@
+## `class` SitkaMeta
+
 ```ts
 export class SitkaMeta {
     public readonly defaultState: {};
@@ -8,9 +10,17 @@ export class SitkaMeta {
 }
 ```
 
+---
+
+## `type` AppStoreCreator
+
 ```ts
 export type AppStoreCreator = (sitaMeta: SitkaMeta) => Store;
 ```
+
+---
+
+## `type` GeneratorContext
 
 ```ts
 export type GeneratorContext = {
@@ -20,15 +30,27 @@ export type GeneratorContext = {
 };
 ```
 
+---
+
+## `type` ModuleState
+
 ```ts
 export type ModuleState = {} | undefined | null;
 ```
+
+---
+
+## `type` PayloadAction
 
 ```ts
 export type PayloadAction = Action & {
     readonly payload?: {};
 };
 ```
+
+---
+
+## `type` SagaMeta
 
 ```ts
 export type SagaMeta = {
@@ -39,6 +61,10 @@ export type SagaMeta = {
 };
 ```
 
+---
+
+## `type` SitkaAction
+
 ```ts
 export type SitkaAction = Action & {
     _moduleId: string;
@@ -47,11 +73,19 @@ export type SitkaAction = Action & {
 };
 ```
 
+---
+
+## `type` SitkaModuleAction
+
 ```ts
 export type SitkaModuleAction<T> =
     | Partial<T> & { type: string; payload?: {} }
     | Action;
 ```
+
+---
+
+## `type` SitkaOptions
 
 ```ts
 export type SitkaOptions = {
@@ -60,12 +94,29 @@ export type SitkaOptions = {
 };
 ```
 
+### `readonly log?: boolean`
+
+This key gives the developer the options of seeing the Redux logs in the browser console.
+
+### `readonly sitkaInState?: boolean;`
+
+This key in not being used in code currently.
+
+---
+
+## SitkaSagaMiddlewareProvider
+
+
 ```ts
 export type SitkaSagaMiddlewareProvider = {
     middleware: SagaMiddleware<{}>;
     activate: () => void;
 };
 ```
+
+---
+
+## StoreOptions
 
 ```ts
 export type StoreOptions = {

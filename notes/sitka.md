@@ -1,13 +1,15 @@
+## `class` Sitka
+
 ```ts
 export class Sitka<MODULES = {}> {
+    protected registeredModules: MODULES;
+
     private forks: CallEffectFn<any>[] = [];
     private middlewareToAdd: Middleware[] = [];
     // tslint:disable-next-line:no-any
     private reducersToCombine: ReducersMapObject = {};
     // tslint:disable-next-line:no-any
     private sagas: SagaMeta[] = [];
-
-    protected registeredModules: MODULES;
 
     private dispatch?: Dispatch;
     private handlerOriginalFunctionMap = new Map<Function, GeneratorContext>();
@@ -22,6 +24,10 @@ export class Sitka<MODULES = {}> {
     }
 }
 ```
+
+---
+
+## `function` createSitkaMeta
 
 ```ts
 public createSitkaMeta (): SitkaMeta {
@@ -83,6 +89,10 @@ public createSitkaMeta (): SitkaMeta {
 }
 ```
 
+---
+
+## `function` createStore
+
 ```ts
 public createStore (appstoreCreator?: AppStoreCreator): Store<{}> | null {
     if (!!appstoreCreator) {
@@ -113,11 +123,19 @@ public createStore (appstoreCreator?: AppStoreCreator): Store<{}> | null {
 }
 ```
 
+---
+
+## `function` getModules
+
 ```ts
 public getModules (): MODULES {
     return this.registeredModules;
 }
 ```
+
+---
+
+## `function` register
 
 ```ts
 public register<SITKA_MODULE extends SitkaModule<ModuleState, MODULES>> (
@@ -241,11 +259,19 @@ public register<SITKA_MODULE extends SitkaModule<ModuleState, MODULES>> (
 }
 ```
 
+---
+
+## `function` setDispatch
+
 ```ts
 public setDispatch (dispatch: Dispatch): void {
     this.dispatch = dispatch;
 }
 ```
+
+---
+
+## `function` createRoot
 
 ```ts
 private createRoot (): (() => IterableIterator<{}>) {
@@ -294,6 +320,10 @@ private createRoot (): (() => IterableIterator<{}>) {
 }
 ```
 
+---
+
+## `function` doDispatch
+
 ```ts
 private doDispatch (action: Action): void {
     const { dispatch } = this;
@@ -305,6 +335,10 @@ private doDispatch (action: Action): void {
     }
 }
 ```
+
+---
+
+## `function` getDefaultState
 
 ```ts
 private getDefaultState (): {} {

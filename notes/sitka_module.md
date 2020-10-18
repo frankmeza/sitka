@@ -1,3 +1,5 @@
+## `class` SitkaModule
+
 ```ts
 export abstract class SitkaModule<MODULE_STATE extends ModuleState, MODULES> {
     public modules: MODULES;
@@ -14,12 +16,20 @@ export abstract class SitkaModule<MODULE_STATE extends ModuleState, MODULES> {
 }
 ```
 
+---
+
+## `method` reduxKey
+
 ```ts
 // by default, the redux key is same as the moduleName
 public reduxKey (): string {
     return this.moduleName;
 }
 ```
+
+---
+
+## `method` createAction
 
 ```ts
 protected createAction (
@@ -45,11 +55,19 @@ protected createAction (
 }
 ```
 
+---
+
+## `method` setState
+
 ```ts
 protected setState (state: MODULE_STATE, replace?: boolean): Action {
     return this.createAction(state, replace);
 }
 ```
+
+---
+
+## `method` resetState
 
 ```ts
 protected resetState (): Action {
@@ -57,11 +75,19 @@ protected resetState (): Action {
 }
 ```
 
+---
+
+## `method` getState
+
 ```ts
 protected getState (state: {}): MODULE_STATE {
     return state[this.reduxKey()];
 }
 ```
+
+---
+
+## `method` *mergeState, generator function
 
 ```ts
 protected *mergeState (partialState: Partial<MODULE_STATE>): {} {
@@ -70,6 +96,10 @@ protected *mergeState (partialState: Partial<MODULE_STATE>): {} {
     yield put(this.setState(newState));
 }
 ```
+
+---
+
+## `createSubscription`
 
 ```ts
 // can be either the action type string, or the module function to watch
@@ -96,30 +126,47 @@ protected createSubscription (
 }
 ```
 
+---
+
+## `method` provideMiddleware
+
 ```ts
 public provideMiddleware (): Middleware[] {
     return [];
 }
 ```
 
-```ts
-    provideSubscriptions (): SagaMeta[] {
-        return [];
-    }
-```
+---
+
+## `method` provideSubscriptions
 
 ```ts
-    provideForks (): CallEffectFn<any>[] {
-        return [];
-    }
+provideSubscriptions (): SagaMeta[] {
+    return [];
+}
 ```
+
+---
+
+## `method` provideForks
+
+```ts
+provideForks (): CallEffectFn<any>[] {
+    return [];
+}
+```
+
+---
+
+## `method` *callAsGenerator, generator function
 
 ```ts
 protected *callAsGenerator (fn: Function, ...rest: any[]): {} {
     const generatorContext: GeneratorContext = this.handlerOriginalFunctionMap.get(
         fn,
     );
-    return yield apply(
+
+return yield apply(
         generatorContext.context,
         generatorContext.fn,
         <any>rest,
