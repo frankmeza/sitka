@@ -19,9 +19,9 @@ export class SitkaMeta {
 export type AppStoreCreator = (sitaMeta: SitkaMeta) => Store;
 
 export type GeneratorContext = {
-    readonly handlerKey: string;
-    readonly fn: CallEffectFn<any>;
     readonly context: {};
+    readonly fn: CallEffectFn<any>;
+    readonly handlerKey: string;
 };
 
 export type ModuleState = {} | undefined | null;
@@ -31,16 +31,16 @@ export type PayloadAction = Action & {
 };
 
 export type SagaMeta = {
+    readonly direct?: boolean;
     // tslint:disable-next-line:no-any
     readonly handler: any;
     readonly name: string;
-    readonly direct?: boolean;
 };
 
 export type SitkaAction = Action & {
-    _moduleId: string;
     // tslint:disable-next-line:no-any
     _args: any;
+    _moduleId: string;
 };
 
 export type SitkaModuleAction<T> =
@@ -53,15 +53,15 @@ export type SitkaOptions = {
 };
 
 export type SitkaSagaMiddlewareProvider = {
-    middleware: SagaMiddleware<{}>;
     activate: () => void;
+    middleware: SagaMiddleware<{}>;
 };
 
 export type StoreOptions = {
     readonly initialState?: {};
-    readonly reducersToCombine?: ReducersMapObject[];
-    readonly storeEnhancers?: StoreEnhancer[];
-    readonly middleware?: Middleware[];
-    readonly sagaRoot?: () => IterableIterator<{}>;
     readonly log?: boolean;
+    readonly middleware?: Middleware[];
+    readonly reducersToCombine?: ReducersMapObject[];
+    readonly sagaRoot?: () => IterableIterator<{}>;
+    readonly storeEnhancers?: StoreEnhancer[];
 };
