@@ -61,8 +61,7 @@ export class Sitka<MODULES = {}> {
             // if sitkaInState is defined, and is not explicitly set, then don't include it
             this.sitkaOptions.sitkaInState !== false;
 
-        const includeLogging =
-            !!this.sitkaOptions && this.sitkaOptions.log === true;
+        const includeLogging = !!this.sitkaOptions && this.sitkaOptions.log;
 
         const logger: Middleware = createLogger({
             stateTransformer: (state: {}) => state,
@@ -90,21 +89,23 @@ export class Sitka<MODULES = {}> {
                 undefined,
         };
 
+        const sagaProvider = (): SitkaSagaMiddlewareProvider => {
+            const middleware = createSagaMiddleware<{}>();
+
+            return {
+                middleware,
+                activate: () => {
+                    middleware.run(sagaRoot);
+                },
+            };
+        };
+
         return {
             defaultState,
             middleware,
             reducersToCombine,
             sagaRoot,
-            sagaProvider: (): SitkaSagaMiddlewareProvider => {
-                const middleware = createSagaMiddleware<{}>();
-
-                return {
-                    middleware,
-                    activate: () => {
-                        middleware.run(sagaRoot);
-                    },
-                };
-            },
+            sagaProvider,
         };
     }
 
@@ -115,14 +116,19 @@ export class Sitka<MODULES = {}> {
             return store;
         } else {
             // use own appstore creator
-            const meta = this.createSitkaMeta();
+            const {
+                defaultState,
+                middleware,
+                reducersToCombine,
+                sagaRoot,
+            } = this.createSitkaMeta();
 
             const store = createAppStore({
-                initialState: meta.defaultState,
-                reducersToCombine: [meta.reducersToCombine],
-                middleware: meta.middleware,
-                sagaRoot: meta.sagaRoot,
-                log: this.sitkaOptions && this.sitkaOptions.log === true,
+                initialState: defaultState,
+                reducersToCombine: [reducersToCombine],
+                middleware: middleware,
+                sagaRoot: sagaRoot,
+                log: this.sitkaOptions && this.sitkaOptions.log,
             });
 
             this.dispatch = store.dispatch;
@@ -167,14 +173,14 @@ export class Sitka<MODULES = {}> {
                 return methodName.indexOf("handle") === 0;
             });
 
-            handlers.forEach(s => {
+            handlers.forEach(handlerName => {
                 // tslint:disable:ban-types
-                const original: Function = instance[s]; // tslint:disable:no-any
-
-                const handlerKey = createHandlerKey(moduleName, s);
+                const original: Function = instance[handlerName]; // tslint:disable:no-any
+                const handlerKey = createHandlerKey(moduleName, handlerName);
 
                 function patched (): void {
                     const args = arguments;
+
                     const action: SitkaAction = {
                         _args: args,
                         _moduleId: moduleName,
@@ -186,11 +192,11 @@ export class Sitka<MODULES = {}> {
 
                 sagas.push({
                     handler: original,
-                    name: createHandlerKey(moduleName, s),
+                    name: createHandlerKey(moduleName, handlerName),
                 });
 
                 // tslint:disable-next-line:no-any
-                instance[s] = patched;
+                instance[handlerName] = patched;
 
                 this.handlerOriginalFunctionMap.set(patched, {
                     handlerKey,
@@ -275,11 +281,13 @@ export class Sitka<MODULES = {}> {
                         sagaMeta.name,
                         sagaMeta.handler,
                     );
+
                     toYield.push(item);
                 } else {
                     const generator = function* (action: SitkaAction): {} {
                         const instance: {} =
                             registeredModules[action._moduleId];
+
                         yield apply(instance, sagaMeta.handler, action._args);
                     };
 

@@ -1,17 +1,46 @@
 import { Action, Middleware } from "redux";
 import { select, put, CallEffectFn, apply } from "redux-saga/effects";
-import { ModuleState, GeneratorContext, SitkaModuleAction, SagaMeta } from "./types";
+import {
+    ModuleState,
+    GeneratorContext,
+    SitkaModuleAction,
+    SagaMeta,
+} from "./types";
 import { createStateChangeKey } from "./utils";
 
 export abstract class SitkaModule<MODULE_STATE extends ModuleState, MODULES> {
     public modules: MODULES;
-    handlerOriginalFunctionMap = new Map<Function, GeneratorContext>();
 
+    public abstract defaultState?: MODULE_STATE;
     public abstract moduleName: string;
+
+    private handlerOriginalFunctionMap = new Map<Function, GeneratorContext>();
 
     constructor () {
         this.getState = this.getState.bind(this);
         this.mergeState = this.mergeState.bind(this);
+    }
+
+    protected getState (state: {}): MODULE_STATE {
+        return state[this.reduxKey()];
+    }
+
+    protected *mergeState (partialState: Partial<MODULE_STATE>): {} {
+        const currentState = yield select(this.getState);
+        const newState = { ...currentState, ...partialState };
+        yield put(this.setState(newState));
+    }
+
+    public provideMiddleware (): Middleware[] {
+        return [];
+    }
+
+    public provideSubscriptions (): SagaMeta[] {
+        return [];
+    }
+
+    public provideForks (): CallEffectFn<any>[] {
+        return [];
     }
 
     // by default, the redux key is same as the moduleName
@@ -19,13 +48,12 @@ export abstract class SitkaModule<MODULE_STATE extends ModuleState, MODULES> {
         return this.moduleName;
     }
 
-    public abstract defaultState?: MODULE_STATE;
-
     protected createAction (
         v: Partial<MODULE_STATE>,
         usePayload?: boolean,
     ): SitkaModuleAction<MODULE_STATE> {
         const type = createStateChangeKey(this.reduxKey());
+
         if (!v) {
             return { type, [type]: null };
         }
@@ -50,17 +78,6 @@ export abstract class SitkaModule<MODULE_STATE extends ModuleState, MODULES> {
     protected resetState (): Action {
         return this.setState(this.defaultState);
     }
-
-    protected getState (state: {}): MODULE_STATE {
-        return state[this.reduxKey()];
-    }
-
-    protected *mergeState (partialState: Partial<MODULE_STATE>): {} {
-        const currentState = yield select(this.getState);
-        const newState = { ...currentState, ...partialState };
-        yield put(this.setState(newState));
-    }
-
     // can be either the action type string, or the module function to watch
     protected createSubscription (
         actionTarget: string | Function,
@@ -82,18 +99,6 @@ export abstract class SitkaModule<MODULE_STATE extends ModuleState, MODULES> {
                 direct: true,
             };
         }
-    }
-
-    provideMiddleware (): Middleware[] {
-        return [];
-    }
-
-    provideSubscriptions (): SagaMeta[] {
-        return [];
-    }
-
-    provideForks (): CallEffectFn<any>[] {
-        return [];
     }
 
     protected *callAsGenerator (fn: Function, ...rest: any[]): {} {

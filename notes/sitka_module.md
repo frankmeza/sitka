@@ -1,98 +1,128 @@
-# SitkaModule (abstract class)
-
 ```typescript
 export abstract class SitkaModule<MODULE_STATE extends ModuleState, MODULES> {
-```
+    public modules: MODULES;
+    public abstract defaultState?: MODULE_STATE;
+    public abstract moduleName: string;
 
-## `modules`
+    private handlerOriginalFunctionMap = new Map<Function, GeneratorContext>();
 
-```typescript
-    public modules: MODULES
-```
-
-## `moduleName`
-
-```typescript
-    public abstract moduleName: string
-```
-
-## `reduxKey`
-
-```typescript
-    // by default, the redux key is same as the moduleName
-    public reduxKey(): string {
-        return this.moduleName
+    constructor () {
+        this.getState = this.getState.bind(this);
+        this.mergeState = this.mergeState.bind(this);
     }
+    // ... methods
+}
 ```
 
-## `defaultState`
-
 ```typescript
-    public abstract defaultState: MODULE_STATE
+// by default, the redux key is same as the moduleName
+public reduxKey (): string {
+    return this.moduleName;
+}
 ```
 
-## `createAction`
-
 ```typescript
-    protected createAction(
-        v: Partial<MODULE_STATE>
-    ): SitkaModuleAction<MODULE_STATE> {
-        const type = createStateChangeKey(this.reduxKey())
+protected createAction (
+    v: Partial<MODULE_STATE>,
+    usePayload?: boolean,
+): SitkaModuleAction<MODULE_STATE> {
+    const type = createStateChangeKey(this.reduxKey());
+    if (!v) {
+        return { type, [type]: null };
+    }
 
-        if (!v) {
-            return { type, [type]: null }
+    if (typeof v !== "object") {
+        return { type, [type]: v };
+    } else {
+        if (usePayload) {
+            return {
+                type,
+                payload: v,
+            };
         }
-
-        if (typeof v !== "object") {
-            return { type, [type]: v }
-        } else {
-            return Object.assign({ type }, v)
-        }
+        return Object.assign({ type }, v);
     }
+}
 ```
 
-## `setState`
-
 ```typescript
-    protected setState(state: MODULE_STATE): Action {
-        return this.createAction(state)
-    }
+protected setState (state: MODULE_STATE, replace?: boolean): Action {
+    return this.createAction(state, replace);
+}
 ```
 
-## `createSubscription`
+```typescript
+protected resetState (): Action {
+    return this.setState(this.defaultState);
+}
+```
 
 ```typescript
-    protected createSubscription(
-        actionType: string,
-        handler: Function,
-    ): SagaMeta {
+protected getState (state: {}): MODULE_STATE {
+    return state[this.reduxKey()];
+}
+```
+
+```typescript
+protected *mergeState (partialState: Partial<MODULE_STATE>): {} {
+    const currentState = yield select(this.getState);
+    const newState = { ...currentState, ...partialState };
+    yield put(this.setState(newState));
+}
+```
+
+```typescript
+// can be either the action type string, or the module function to watch
+protected createSubscription (
+    actionTarget: string | Function,
+    handler: CallEffectFn<any>,
+): SagaMeta {
+    if (typeof actionTarget === "string") {
         return {
-            name: actionType,
+            name: actionTarget,
             handler,
-            direct: true
-        }
+            direct: true,
+        };
+    } else {
+        const generatorContext: GeneratorContext = this.handlerOriginalFunctionMap.get(
+            actionTarget,
+        );
+        return {
+            name: generatorContext.handlerKey,
+            handler,
+            direct: true,
+        };
+    }
+}
+```
+
+```typescript
+public provideMiddleware (): Middleware[] {
+    return [];
+}
+```
+
+```typescript
+    provideSubscriptions (): SagaMeta[] {
+        return [];
     }
 ```
 
-### Usage Example
-
 ```typescript
-// show example from pet module here, with explanation
-```
-
-## `provideMiddleware`
-
-```typescript
-    provideMiddleware(): Middleware[] {
-        return []
+    provideForks (): CallEffectFn<any>[] {
+        return [];
     }
 ```
 
-## `provideSubscriptions`
-
 ```typescript
-    provideSubscriptions(): SagaMeta[] {
-        return []
-    }
+protected *callAsGenerator (fn: Function, ...rest: any[]): {} {
+    const generatorContext: GeneratorContext = this.handlerOriginalFunctionMap.get(
+        fn,
+    );
+    return yield apply(
+        generatorContext.context,
+        generatorContext.fn,
+        <any>rest,
+    );
 }
 ```

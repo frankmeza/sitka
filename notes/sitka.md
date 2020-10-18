@@ -1,288 +1,324 @@
-# Sitka (Class)
-
 ```typescript
 export class Sitka<MODULES = {}> {
-```
-
-- is a concrete class.
-- receives `MODULES`, which defaults to `{}`.
-- registers all of the instances of sitka modules.
-- is the most dramatic actor in overstepping redux to manage app state.
-
-## Sitka has knowledge of Redux machinery
-
-## `sagas`
-
-```typescript
+    private forks: CallEffectFn<any>[] = [];
+    private middlewareToAdd: Middleware[] = [];
     // tslint:disable-next-line:no-any
-    private sagas: SagaMeta[] = []
-```
+    private reducersToCombine: ReducersMapObject = {};
+    // tslint:disable-next-line:no-any
+    private sagas: SagaMeta[] = [];
 
-- is used within Sitka itself to create a root saga to run the rest in `createRoot()` .at 264
-- is returned from `createSubscription()` .at 60
-- see `NOTES/saga-meta-interface` for more in-depth information
+    protected registeredModules: MODULES;
 
-## `reducersToCombine`
+    private dispatch?: Dispatch;
+    private handlerOriginalFunctionMap = new Map<Function, GeneratorContext>();
+    private sitkaOptions: SitkaOptions;
 
-```typescript
-    private reducersToCombine: ReducersMapObject = {}
-```
-
-- This is essentially redux state, this is passed into `createAppStore` .at 303
-- defaults to `{}`
-- see `NOTES/reducers-map-object` for more in-depth information
-
-## `registeredModules`
-
-```typescript
-    protected registeredModules: MODULES
-```
-
-- These are the modules which are passed into Sitka when an instance is created
-
-## `dispatch?`
-
-```typescript
-	private dispatch?: Dispatch
-```
-
-- IDK yet
-
-## `constructor()`
-
-```typescript
-    constructor() {
-        this.doDispatch = this.doDispatch.bind(this)
-        this.createStore = this.createStore.bind(this)
-        this.createRoot = this.createRoot.bind(this)
-        this.registeredModules = {} as MODULES
+    constructor (sitkaOptions?: SitkaOptions) {
+        this.sitkaOptions = sitkaOptions;
+        this.doDispatch = this.doDispatch.bind(this);
+        this.createStore = this.createStore.bind(this);
+        this.createRoot = this.createRoot.bind(this);
+        this.registeredModules = {} as MODULES;
     }
-```
-
-- a pretty standard constructor function
-- may be able to bind functions to Sitka with fat arrow syntax
-- we'll see these functions in more detail
-- `this.registeredModules` defaults to `{}`
-
-<!-- ```typescript
-public exampleFn = (someParam: string): {} => {
-    // all your codez here
 }
-``` -->
-
-## `setDispatch(dispatch: Dispatch) -> void`
-
-```typescript
-    public setDispatch(dispatch: Dispatch): void {
-        this.dispatch = dispatch
-    }
 ```
 
-- rcv a Redux `Dispatch` and sets the instance `dispatch` equal to the rcvd one
-
-## `getModules() -> MODULES`
-
 ```typescript
-    public getModules(): MODULES {
-        return this.registeredModules
-    }
-```
+public createSitkaMeta (): SitkaMeta {
+    // by default, we include sitka object in the meta
+    const includeSitka =
+        // if no options, or
+        !this.sitkaOptions ||
+        // if options were provided, but sitkaInState is not defined, or
+        this.sitkaOptions.sitkaInState === undefined ||
+        // if sitkaInState is defined, and is not explicitly set, then don't include it
+        this.sitkaOptions.sitkaInState !== false;
 
-## `createSitkaMeta() -> SitkaMeta`
+    const includeLogging = !!this.sitkaOptions && this.sitkaOptions.log;
 
-```typescript
-    public createSitkaMeta(): SitkaMeta {
+    const logger: Middleware = createLogger({
+        stateTransformer: (state: {}) => state,
+    });
+
+    const sagaRoot = this.createRoot();
+
+    const defaultState = {
+        ...this.getDefaultState(),
+        __sitka__:
+            includeSitka ? this :
+            undefined,
+    };
+
+    const middleware =
+        includeLogging ? [...this.middlewareToAdd, logger] :
+        this.middlewareToAdd;
+
+    const sitkaReducer = (state: this | null = null): this | null => state;
+
+    const reducersToCombine = {
+        ...this.reducersToCombine,
+        __sitka__:
+            includeSitka ? sitkaReducer :
+            undefined,
+    };
+
+    const sagaProvider = (): SitkaSagaMiddlewareProvider => {
+        const middleware = createSagaMiddleware<{}>();
+
         return {
-            defaultState: {
-                ...this.getDefaultState(),
-                __sitka__: this
+            middleware,
+            activate: () => {
+                middleware.run(sagaRoot);
             },
-            middleware: this.middlewareToAdd,
-            reducersToCombine: {
-                ...this.reducersToCombine,
-                __sitka__: (state: this | null = null): this | null => state
-            },
-            sagaRoot: this.createRoot(),
-        }
-    }
+        };
+    };
+
+    return {
+        defaultState,
+        middleware,
+        reducersToCombine,
+        sagaRoot,
+        sagaProvider,
+    };
+}
 ```
 
-## `createStore(appstoreCreator?: AppStoreCreator): Store<{}> | null`
-
 ```typescript
-    public createStore(appstoreCreator?: AppStoreCreator): Store<{}> | null {
-        if (!!appstoreCreator) {
-            const store = appstoreCreator(this.createSitkaMeta())
-            this.dispatch = store.dispatch
-            return store
-        } else {
-            // use own appstore creator
-            const meta = this.createSitkaMeta()
+public createStore (appstoreCreator?: AppStoreCreator): Store<{}> | null {
+    if (!!appstoreCreator) {
+        const store = appstoreCreator(this.createSitkaMeta());
+        this.dispatch = store.dispatch;
+        return store;
+    } else {
+        // use own appstore creator
+        const {
+            defaultState,
+            middleware,
+            reducersToCombine,
+            sagaRoot,
+        } = this.createSitkaMeta();
 
-            const store = createAppStore(
-                meta.defaultState,
-                [meta.reducersToCombine],
-                meta.middleware,
-                meta.sagaRoot,
-            )
+        const store = createAppStore({
+            initialState: defaultState,
+            reducersToCombine: [reducersToCombine],
+            middleware: middleware,
+            sagaRoot: sagaRoot,
+            log: this.sitkaOptions && this.sitkaOptions.log,
+        });
 
-            this.dispatch = store.dispatch
-            return store
-        }
+        this.dispatch = store.dispatch;
+
+        return store;
     }
+}
 ```
 
-## `register<SITKA_MODULE extends SitkaModule<ModuleState, MODULES>>(instances: SITKA_MODULE[]) -> void`
+```typescript
+public getModules (): MODULES {
+    return this.registeredModules;
+}
+```
 
 ```typescript
-    public register<SITKA_MODULE extends SitkaModule<ModuleState, MODULES>>(
-        instances: SITKA_MODULE[],
-    ): void {
-        instances.forEach(instance => {
-            const methodNames = getInstanceMethodNames(instance, Object.prototype)
-            const handlers = methodNames.filter(m => m.indexOf("handle") === 0)
-            const subscribers = instance.provideSubscriptions()
-            const { moduleName } = instance
+public register<SITKA_MODULE extends SitkaModule<ModuleState, MODULES>> (
+    instances: SITKA_MODULE[],
+): void {
+    instances.forEach(instance => {
+        const methodNames = getInstanceMethodNames(
+            instance,
+            Object.prototype,
+        );
 
-            const {
-                middlewareToAdd,
-                sagas,
-                reducersToCombine,
-                doDispatch: dispatch,
-            } = this
+        const {
+            doDispatch: dispatch,
+            forks,
+            middlewareToAdd,
+            reducersToCombine,
+            sagas,
+        } = this;
 
-            instance.modules = this.getModules()
-            sagas.push(...subscribers)
+        instance.modules = this.getModules();
+        instance.handlerOriginalFunctionMap = this.handlerOriginalFunctionMap;
 
-            middlewareToAdd.push(...instance.provideMiddleware())
+        middlewareToAdd.push(...instance.provideMiddleware());
 
-            handlers.forEach(s => {
-                // tslint:disable:ban-types
-                const original: Function = instance[s] // tslint:disable:no-any
+        instance.provideForks().forEach(fork => {
+            forks.push(fork.bind(instance));
+        });
 
-                function patched(): void {
-                    const args = arguments
+        const { moduleName } = instance;
 
-                    const action: SitkaAction = {
-                        _args: args,
-                        _moduleId: moduleName,
-                        type: createHandlerKey(moduleName, s),
-                    }
+        const handlers = methodNames.filter(methodName => {
+            return methodName.indexOf("handle") === 0;
+        });
 
-                    dispatch(action)
-                }
+        handlers.forEach(handlerName => {
+            // tslint:disable:ban-types
+            const original: Function = instance[handlerName]; // tslint:disable:no-any
+            const handlerKey = createHandlerKey(moduleName, handlerName);
 
-                sagas.push({
-                    handler: original,
-                    name: createHandlerKey(moduleName, s),
-                })
-                // tslint:disable-next-line:no-any
-                instance[s] = patched
-            })
+            function patched (): void {
+                const args = arguments;
 
+                const action: SitkaAction = {
+                    _args: args,
+                    _moduleId: moduleName,
+                    type: handlerKey,
+                };
+
+                dispatch(action);
+            }
+
+            sagas.push({
+                handler: original,
+                name: createHandlerKey(moduleName, handlerName),
+            });
+
+            // tslint:disable-next-line:no-any
+            instance[handlerName] = patched;
+
+            this.handlerOriginalFunctionMap.set(patched, {
+                handlerKey,
+                fn: original,
+                context: instance,
+            });
+        });
+
+        if (instance.defaultState !== undefined) {
             // create reducer
-            const reduxKey: string = instance.reduxKey()
-            const defaultState = instance.defaultState
-            const actionType: string = createStateChangeKey(reduxKey)
+            const reduxKey: string = instance.reduxKey();
+            const defaultState = instance.defaultState;
+            const actionType: string = createStateChangeKey(reduxKey);
 
             reducersToCombine[reduxKey] = (
                 state: ModuleState = defaultState,
-                action: Action
+                action: PayloadAction,
             ): ModuleState => {
                 if (action.type !== actionType) {
-                    return state
+                    return state;
                 }
 
-                const type = createStateChangeKey(moduleName)
-                const newState: ModuleState = Object.keys(action)
-                    .filter(k => k !== "type")
-                    .reduce((acc, k) => {
-                        const val = action[k]
+                const changeKey = createStateChangeKey(moduleName);
+                const payload = action.payload;
 
-                        if (k === type) {
-                            return val
+                if (!!payload) {
+                    return payload;
+                }
+
+                const newState: ModuleState = Object.keys(action)
+                    .filter(key => key !== "type")
+                    .reduce((acc, key) => {
+                        const val = action[key];
+
+                        if (key === changeKey) {
+                            return val;
                         }
 
                         if (val === null || typeof val === "undefined") {
                             return Object.assign(acc, {
-                                [k]: null
-                            })
+                                [key]: null,
+                            });
                         }
 
                         return Object.assign(acc, {
-                            [k]: val
-                        })
-                    }, Object.assign({}, state)) as ModuleState
+                            [key]: val,
+                        });
+                    }, Object.assign({}, state)) as ModuleState;
 
-                return newState
-            }
+                return newState;
+            };
+        }
 
-            this.registeredModules[moduleName] = instance
-        })
+        this.registeredModules[moduleName] = instance;
+    });
+
+    // do subscribers after all has been registered
+    instances.forEach(instance => {
+        const { sagas } = this;
+        const subscribers = instance.provideSubscriptions();
+        sagas.push(...subscribers);
+    });
 }
 ```
 
-## `getDefaultState() -> {}`
-
 ```typescript
-    private getDefaultState(): {} {
-        const modules = this.getModules()
-
-        return Object.keys(modules)
-            .map(k => modules[k])
-            .reduce(
-                (acc: {}, m: SitkaModule<{} | null, MODULES>) => ({
-                    ...acc,
-                    [m.moduleName]: m.defaultState
-                }),
-                {}
-            )
-    }
-```
-
-## `createRoot() -> () => IterableIterator<{}>`
-
-```typescript
-    private createRoot(): (() => IterableIterator<{}>) {
-        const { sagas, registeredModules } = this
-
-        function* root(): IterableIterator<{}> {
-            /* tslint:disable */
-            const toYield: any[] = []
-
-            for (let i = 0; i < sagas.length; i++) {
-                const s: SagaMeta = sagas[i]
-
-                if (s.direct) {
-                    const item: any = yield takeEvery(s.name, s.handler)
-                    toYield.push(item)
-                } else {
-                    const generator = function* (action: any): {} {
-                        const instance: {} = registeredModules[action._moduleId]
-                        yield apply(instance, s.handler, action._args)
-                    }
-
-                    const item: any = yield takeEvery(s.name, generator)
-                    toYield.push(item)
-                }
-            }
-            /* tslint:enable */
-            yield all(toYield)
-        }
-
-        return root
+public setDispatch (dispatch: Dispatch): void {
+    this.dispatch = dispatch;
 }
 ```
 
-## `doDispatch(action: Action) -> void`
+```typescript
+private createRoot (): (() => IterableIterator<{}>) {
+    const { sagas, forks, registeredModules } = this;
+
+    function* root (): IterableIterator<{}> {
+        /* tslint:disable */
+        const toYield: ForkEffect[] = [];
+
+        // generators
+        for (let i = 0; i < sagas.length; i++) {
+            const sagaMeta: SagaMeta = sagas[i];
+
+            if (sagaMeta.direct) {
+                const item: any = yield takeEvery(
+                    sagaMeta.name,
+                    sagaMeta.handler,
+                );
+
+                toYield.push(item);
+            } else {
+                const generator = function* (action: SitkaAction): {} {
+                    const instance: {} =
+                        registeredModules[action._moduleId];
+
+                    yield apply(instance, sagaMeta.handler, action._args);
+                };
+
+                const item: any = yield takeEvery(sagaMeta.name, generator);
+                toYield.push(item);
+            }
+        }
+
+        // forks
+        for (let i = 0; i < forks.length; i++) {
+            const f = forks[i];
+            const item: any = fork(f);
+            toYield.push(item);
+        }
+
+        /* tslint:enable */
+        yield all(toYield);
+    }
+
+    return root;
+}
+```
 
 ```typescript
-    private doDispatch(action: Action): void {
-        const { dispatch } = this
+private doDispatch (action: Action): void {
+    const { dispatch } = this;
 
-        if (!!dispatch) {
-            dispatch(action)
-        }
+    if (!!dispatch) {
+        dispatch(action);
+    } else {
+        alert("no dispatch");
     }
+}
+```
+
+```typescript
+private getDefaultState (): {} {
+    const modules = this.getModules();
+
+    const defaultState = Object.keys(modules)
+        .map(key => modules[key])
+        .reduce((acc: {}, module: SitkaModule<{} | null, MODULES>) => {
+            return {
+                ...acc,
+                [module.moduleName]: module.defaultState,
+            };
+        }, {});
+
+    return defaultState;
 }
 ```
