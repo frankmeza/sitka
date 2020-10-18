@@ -32,10 +32,7 @@ import {
 export class Sitka<MODULES = {}> {
     private forks: CallEffectFn<any>[] = [];
 
-    public handlerOriginalFunctionMap = new Map<
-        Function,
-        GeneratorContext
-    >();
+    public handlerOriginalFunctionMap = new Map<Function, GeneratorContext>();
 
     private middlewareToAdd: Middleware[] = [];
     // tslint:disable-next-line:no-any
@@ -340,3 +337,23 @@ export class Sitka<MODULES = {}> {
         return defaultState;
     }
 }
+
+export {
+    // utils
+    createAppStore,
+    createHandlerKey,
+    createStateChangeKey,
+    getInstanceMethodNames,
+
+    // types
+    AppStoreCreator,
+    GeneratorContext,
+    SagaMeta,
+    ModuleState,
+    PayloadAction,
+    SitkaAction,
+    SitkaMeta,
+    SitkaModule,
+    SitkaOptions,
+    SitkaSagaMiddlewareProvider,
+};
