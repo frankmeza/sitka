@@ -1,7 +1,8 @@
 <!-- BEGIN: TYPES -->
 # Types in Sitka
 
-- summary of types 
+- summary of types
+
 ## `class` SitkaMeta
 
 ```ts
@@ -110,7 +111,6 @@ This key in not being used in code currently.
 
 ## `type` SitkaSagaMiddlewareProvider
 
-
 ```ts
 export type SitkaSagaMiddlewareProvider = {
     middleware: SagaMiddleware<{}>;
@@ -174,7 +174,7 @@ export const createAppStore = (options: StoreOptions): Store => {
     );
 
     if (sagaRoot) {
-        sagaMiddleware.run(<any>sagaRoot);
+        sagaMiddleware.run(sagaRoot as any);
     }
 
     return store;
@@ -469,20 +469,20 @@ public register<SITKA_MODULE extends SitkaModule<ModuleState, MODULES>> (
                 const newState: ModuleState = Object.keys(action)
                     .filter(key => key !== "type")
                     .reduce((acc, key) => {
-                        const val = action[key];
+                        const value = action[key];
 
                         if (key === changeKey) {
-                            return val;
+                            return value;
                         }
 
-                        if (val === null || typeof val === "undefined") {
+                        if (value === null || typeof value === "undefined") {
                             return Object.assign(acc, {
                                 [key]: null,
                             });
                         }
 
                         return Object.assign(acc, {
-                            [key]: val,
+                            [key]: value,
                         });
                     }, Object.assign({}, state)) as ModuleState;
 
@@ -645,6 +645,7 @@ protected createAction (
     usePayload?: boolean,
 ): SitkaModuleAction<MODULE_STATE> {
     const type = createStateChangeKey(this.reduxKey());
+    
     if (!v) {
         return { type, [type]: null };
     }
@@ -658,6 +659,7 @@ protected createAction (
                 payload: v,
             };
         }
+        
         return Object.assign({ type }, v);
     }
 }
@@ -725,6 +727,7 @@ protected createSubscription (
         const generatorContext: GeneratorContext = this.handlerOriginalFunctionMap.get(
             actionTarget,
         );
+
         return {
             name: generatorContext.handlerKey,
             handler,
