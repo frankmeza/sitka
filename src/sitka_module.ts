@@ -9,26 +9,15 @@ import {
 import { createStateChangeKey } from "./utils";
 
 export abstract class SitkaModule<MODULE_STATE extends ModuleState, MODULES> {
-    public modules: MODULES;
-
     public abstract defaultState?: MODULE_STATE;
     public abstract moduleName: string;
 
-    private handlerOriginalFunctionMap = new Map<Function, GeneratorContext>();
+    public modules: MODULES;
+    public handlerOriginalFunctionMap = new Map<Function, GeneratorContext>();
 
     constructor () {
         this.getState = this.getState.bind(this);
         this.mergeState = this.mergeState.bind(this);
-    }
-
-    protected getState (state: {}): MODULE_STATE {
-        return state[this.reduxKey()];
-    }
-
-    protected *mergeState (partialState: Partial<MODULE_STATE>): {} {
-        const currentState = yield select(this.getState);
-        const newState = { ...currentState, ...partialState };
-        yield put(this.setState(newState));
     }
 
     public provideMiddleware (): Middleware[] {
@@ -71,6 +60,16 @@ export abstract class SitkaModule<MODULE_STATE extends ModuleState, MODULES> {
         }
     }
 
+    protected getState (state: {}): MODULE_STATE {
+        return state[this.reduxKey()];
+    }
+
+    protected *mergeState (partialState: Partial<MODULE_STATE>): {} {
+        const currentState = yield select(this.getState);
+        const newState = { ...currentState, ...partialState };
+        yield put(this.setState(newState));
+    }
+
     protected setState (state: MODULE_STATE, replace?: boolean): Action {
         return this.createAction(state, replace);
     }
@@ -93,6 +92,7 @@ export abstract class SitkaModule<MODULE_STATE extends ModuleState, MODULES> {
             const generatorContext: GeneratorContext = this.handlerOriginalFunctionMap.get(
                 actionTarget,
             );
+
             return {
                 name: generatorContext.handlerKey,
                 handler,
@@ -105,10 +105,11 @@ export abstract class SitkaModule<MODULE_STATE extends ModuleState, MODULES> {
         const generatorContext: GeneratorContext = this.handlerOriginalFunctionMap.get(
             fn,
         );
+
         return yield apply(
             generatorContext.context,
             generatorContext.fn,
-            <any>rest,
+            rest as any,
         );
     }
 }

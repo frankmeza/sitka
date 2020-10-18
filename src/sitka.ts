@@ -31,6 +31,8 @@ import {
 
 export class Sitka<MODULES = {}> {
     private forks: CallEffectFn<any>[] = [];
+    public handlerOriginalFunctionMap = new Map<Function, GeneratorContext>();
+
     private middlewareToAdd: Middleware[] = [];
     // tslint:disable-next-line:no-any
     private reducersToCombine: ReducersMapObject = {};
@@ -40,7 +42,6 @@ export class Sitka<MODULES = {}> {
     protected registeredModules: MODULES;
 
     private dispatch?: Dispatch;
-    private handlerOriginalFunctionMap = new Map<Function, GeneratorContext>();
     private sitkaOptions: SitkaOptions;
 
     constructor (sitkaOptions?: SitkaOptions) {
