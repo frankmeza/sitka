@@ -47,7 +47,7 @@ export const createAppStore = (options: StoreOptions): Store => {
     );
 
     if (sagaRoot) {
-        sagaMiddleware.run(<any>sagaRoot);
+        sagaMiddleware.run(sagaRoot as any);
     }
 
     return store;
