@@ -243,19 +243,24 @@ const hasMethod = (obj: {}, name: string) => {
 
 ## `class` Sitka
 
+### properties and `constructor()`
+
 ```ts
 export class Sitka<MODULES = {}> {
+    public handlerOriginalFunctionMap = new Map<
+        Function,
+        GeneratorContext
+    >();
+
     protected registeredModules: MODULES;
 
+    private dispatch?: Dispatch;
     private forks: CallEffectFn<any>[] = [];
     private middlewareToAdd: Middleware[] = [];
     // tslint:disable-next-line:no-any
     private reducersToCombine: ReducersMapObject = {};
     // tslint:disable-next-line:no-any
     private sagas: SagaMeta[] = [];
-
-    private dispatch?: Dispatch;
-    private handlerOriginalFunctionMap = new Map<Function, GeneratorContext>();
     private sitkaOptions: SitkaOptions;
 
     constructor (sitkaOptions?: SitkaOptions) {
@@ -267,6 +272,8 @@ export class Sitka<MODULES = {}> {
     }
 }
 ```
+
+
 
 ---
 

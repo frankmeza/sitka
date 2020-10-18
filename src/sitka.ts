@@ -31,7 +31,11 @@ import {
 
 export class Sitka<MODULES = {}> {
     private forks: CallEffectFn<any>[] = [];
-    public handlerOriginalFunctionMap = new Map<Function, GeneratorContext>();
+
+    public handlerOriginalFunctionMap = new Map<
+        Function,
+        GeneratorContext
+    >();
 
     private middlewareToAdd: Middleware[] = [];
     // tslint:disable-next-line:no-any
