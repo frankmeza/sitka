@@ -1,3 +1,246 @@
+<!-- BEGIN: TYPES -->
+# Types in Sitka
+
+- summary of types 
+## `class` SitkaMeta
+
+```ts
+export class SitkaMeta {
+    public readonly defaultState: {};
+    public readonly middleware: Middleware[];
+    public readonly reducersToCombine: ReducersMapObject;
+    public readonly sagaRoot: (() => IterableIterator<{}>);
+    public readonly sagaProvider: () => SitkaSagaMiddlewareProvider;
+}
+```
+
+---
+
+## `type` AppStoreCreator
+
+```ts
+export type AppStoreCreator = (sitaMeta: SitkaMeta) => Store;
+```
+
+---
+
+## `type` GeneratorContext
+
+```ts
+export type GeneratorContext = {
+    readonly handlerKey: string;
+    readonly fn: CallEffectFn<any>;
+    readonly context: {};
+};
+```
+
+---
+
+## `type` ModuleState
+
+```ts
+export type ModuleState = {} | undefined | null;
+```
+
+---
+
+## `type` PayloadAction
+
+```ts
+export type PayloadAction = Action & {
+    readonly payload?: {};
+};
+```
+
+---
+
+## `type` SagaMeta
+
+```ts
+export type SagaMeta = {
+    // tslint:disable-next-line:no-any
+    readonly handler: any;
+    readonly name: string;
+    readonly direct?: boolean;
+};
+```
+
+---
+
+## `type` SitkaAction
+
+```ts
+export type SitkaAction = Action & {
+    _moduleId: string;
+    // tslint:disable-next-line:no-any
+    _args: any;
+};
+```
+
+---
+
+## `type` SitkaModuleAction
+
+```ts
+export type SitkaModuleAction<T> =
+    | Partial<T> & { type: string; payload?: {} }
+    | Action;
+```
+
+---
+
+## `type` SitkaOptions
+
+```ts
+export type SitkaOptions = {
+    readonly log?: boolean;
+    readonly sitkaInState?: boolean;
+};
+```
+
+### `readonly log?: boolean`
+
+This key gives the developer the options of seeing the Redux logs in the browser console.
+
+### `readonly sitkaInState?: boolean;`
+
+This key in not being used in code currently.
+
+---
+
+## `type` SitkaSagaMiddlewareProvider
+
+
+```ts
+export type SitkaSagaMiddlewareProvider = {
+    middleware: SagaMiddleware<{}>;
+    activate: () => void;
+};
+```
+
+---
+
+## `type` StoreOptions
+
+```ts
+export type StoreOptions = {
+    readonly initialState?: {};
+    readonly reducersToCombine?: ReducersMapObject[];
+    readonly storeEnhancers?: StoreEnhancer[];
+    readonly middleware?: Middleware[];
+    readonly sagaRoot?: () => IterableIterator<{}>;
+    readonly log?: boolean;
+};
+```
+
+<!-- END: TYPES -->
+
+<!-- BEGIN: UTILS -->
+
+## `function` createAppStore
+
+```ts
+export const createAppStore = (options: StoreOptions): Store => {
+    const {
+        initialState = {},
+        log = false,
+        middleware = [],
+        reducersToCombine = [],
+        sagaRoot,
+        storeEnhancers = [],
+    } = options;
+
+    const logger: Middleware = createLogger({
+        stateTransformer: (state: {}) => state,
+    });
+
+    const sagaMiddleware: SagaMiddleware<{}> = createSagaMiddleware();
+
+    const commonMiddleware: ReadonlyArray<Middleware> =
+        log ? [sagaMiddleware, logger] :
+        [sagaMiddleware];
+
+    const appReducer = reducersToCombine.reduce(
+        (acc, r) => ({ ...acc, ...r }),
+        {},
+    );
+
+    const combinedMiddleware = [...commonMiddleware, ...middleware];
+
+    const store: Store = createStore(
+        combineReducers(appReducer),
+        initialState as DeepPartial<{}>,
+        compose(...storeEnhancers, applyMiddleware(...combinedMiddleware)),
+    );
+
+    if (sagaRoot) {
+        sagaMiddleware.run(<any>sagaRoot);
+    }
+
+    return store;
+};
+```
+
+---
+
+## `function` createStateChangeKey
+
+```ts
+export const createStateChangeKey = (module: string) =>
+    `module_${module}_change_state`.toUpperCase();
+```
+
+---
+
+## `function` createHandlerKey
+
+```ts
+export const createHandlerKey = (module: string, handler: string) =>
+    `module_${module}_${snakeCase(handler)}`.toUpperCase();
+```
+
+---
+
+## `function` getInstanceMethodNames
+
+```ts
+export const getInstanceMethodNames = (obj: {}, stop: {}) => {
+    const array: string[] = [];
+    let proto = Object.getPrototypeOf(obj);
+
+    while (proto && proto !== stop) {
+        Object.getOwnPropertyNames(proto).forEach(name => {
+            if (name !== "constructor") {
+                if (hasMethod(proto, name)) {
+                    array.push(name);
+                }
+            }
+        });
+
+        proto = Object.getPrototypeOf(proto);
+    }
+
+    return array;
+};
+```
+
+## `function` hasMethod
+
+```ts
+const hasMethod = (obj: {}, name: string) => {
+    const desc = Object.getOwnPropertyDescriptor(obj, name);
+    return !!desc && typeof desc.value === "function";
+};
+```
+
+---
+
+<!-- END: UTILS -->
+
+# Sitka class
+
+<!-- BEGIN: SITKA -->
+
 ## `class` Sitka
 
 ```ts
@@ -27,7 +270,7 @@ export class Sitka<MODULES = {}> {
 
 ---
 
-## `function` createSitkaMeta
+## `Sitka method` createSitkaMeta
 
 ```ts
 public createSitkaMeta (): SitkaMeta {
@@ -91,7 +334,7 @@ public createSitkaMeta (): SitkaMeta {
 
 ---
 
-## `function` createStore
+## `Sitka method` createStore
 
 ```ts
 public createStore (appstoreCreator?: AppStoreCreator): Store<{}> | null {
@@ -125,7 +368,7 @@ public createStore (appstoreCreator?: AppStoreCreator): Store<{}> | null {
 
 ---
 
-## `function` getModules
+## `Sitka method` getModules
 
 ```ts
 public getModules (): MODULES {
@@ -135,7 +378,7 @@ public getModules (): MODULES {
 
 ---
 
-## `function` register
+## `Sitka method` register
 
 ```ts
 public register<SITKA_MODULE extends SitkaModule<ModuleState, MODULES>> (
@@ -261,7 +504,7 @@ public register<SITKA_MODULE extends SitkaModule<ModuleState, MODULES>> (
 
 ---
 
-## `function` setDispatch
+## `Sitka method` setDispatch
 
 ```ts
 public setDispatch (dispatch: Dispatch): void {
@@ -271,7 +514,7 @@ public setDispatch (dispatch: Dispatch): void {
 
 ---
 
-## `function` createRoot
+## `Sitka method` createRoot
 
 ```ts
 private createRoot (): (() => IterableIterator<{}>) {
@@ -322,7 +565,7 @@ private createRoot (): (() => IterableIterator<{}>) {
 
 ---
 
-## `function` doDispatch
+## `Sitka method` doDispatch
 
 ```ts
 private doDispatch (action: Action): void {
@@ -338,7 +581,7 @@ private doDispatch (action: Action): void {
 
 ---
 
-## `function` getDefaultState
+## `Sitka method` getDefaultState
 
 ```ts
 private getDefaultState (): {} {
@@ -356,3 +599,187 @@ private getDefaultState (): {} {
     return defaultState;
 }
 ```
+
+<!-- END: SITKA -->
+
+<!-- BEGIN: SITKA_MODULE -->
+
+# SitkaModule class
+
+## `class` SitkaModule
+
+```ts
+export abstract class SitkaModule<MODULE_STATE extends ModuleState, MODULES> {
+    public modules: MODULES;
+    public abstract defaultState?: MODULE_STATE;
+    public abstract moduleName: string;
+
+    private handlerOriginalFunctionMap = new Map<Function, GeneratorContext>();
+
+    constructor () {
+        this.getState = this.getState.bind(this);
+        this.mergeState = this.mergeState.bind(this);
+    }
+    // ... methods
+}
+```
+
+---
+
+## `SitkaModule method` reduxKey
+
+```ts
+// by default, the redux key is same as the moduleName
+public reduxKey (): string {
+    return this.moduleName;
+}
+```
+
+---
+
+## `SitkaModule method` createAction
+
+```ts
+protected createAction (
+    v: Partial<MODULE_STATE>,
+    usePayload?: boolean,
+): SitkaModuleAction<MODULE_STATE> {
+    const type = createStateChangeKey(this.reduxKey());
+    if (!v) {
+        return { type, [type]: null };
+    }
+
+    if (typeof v !== "object") {
+        return { type, [type]: v };
+    } else {
+        if (usePayload) {
+            return {
+                type,
+                payload: v,
+            };
+        }
+        return Object.assign({ type }, v);
+    }
+}
+```
+
+---
+
+## `SitkaModule method` setState
+
+```ts
+protected setState (state: MODULE_STATE, replace?: boolean): Action {
+    return this.createAction(state, replace);
+}
+```
+
+---
+
+## `SitkaModule method` resetState
+
+```ts
+protected resetState (): Action {
+    return this.setState(this.defaultState);
+}
+```
+
+---
+
+## `SitkaModule method` getState
+
+```ts
+protected getState (state: {}): MODULE_STATE {
+    return state[this.reduxKey()];
+}
+```
+
+---
+
+## `SitkaModule method` *mergeState, generator function
+
+```ts
+protected *mergeState (partialState: Partial<MODULE_STATE>): {} {
+    const currentState = yield select(this.getState);
+    const newState = { ...currentState, ...partialState };
+    yield put(this.setState(newState));
+}
+```
+
+---
+
+## `SitkaModule method` createSubscription
+
+```ts
+// can be either the action type string, or the module function to watch
+protected createSubscription (
+    actionTarget: string | Function,
+    handler: CallEffectFn<any>,
+): SagaMeta {
+    if (typeof actionTarget === "string") {
+        return {
+            name: actionTarget,
+            handler,
+            direct: true,
+        };
+    } else {
+        const generatorContext: GeneratorContext = this.handlerOriginalFunctionMap.get(
+            actionTarget,
+        );
+        return {
+            name: generatorContext.handlerKey,
+            handler,
+            direct: true,
+        };
+    }
+}
+```
+
+---
+
+## `SitkaModule method` provideMiddleware
+
+```ts
+public provideMiddleware (): Middleware[] {
+    return [];
+}
+```
+
+---
+
+## `SitkaModule method` provideSubscriptions
+
+```ts
+provideSubscriptions (): SagaMeta[] {
+    return [];
+}
+```
+
+---
+
+## `SitkaModule method` provideForks
+
+```ts
+provideForks (): CallEffectFn<any>[] {
+    return [];
+}
+```
+
+---
+
+## `SitkaModule method` *callAsGenerator, generator function
+
+```ts
+protected *callAsGenerator (fn: Function, ...rest: any[]): {} {
+    const generatorContext: GeneratorContext = this.handlerOriginalFunctionMap.get(
+        fn,
+    );
+
+return yield apply(
+        generatorContext.context,
+        generatorContext.fn,
+        <any>rest,
+    );
+}
+```
+
+<!-- END: SITKA_MODULE -->
