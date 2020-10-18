@@ -1,4 +1,4 @@
-```typescript
+```ts
 export class Sitka<MODULES = {}> {
     private forks: CallEffectFn<any>[] = [];
     private middlewareToAdd: Middleware[] = [];
@@ -23,7 +23,7 @@ export class Sitka<MODULES = {}> {
 }
 ```
 
-```typescript
+```ts
 public createSitkaMeta (): SitkaMeta {
     // by default, we include sitka object in the meta
     const includeSitka =
@@ -83,7 +83,7 @@ public createSitkaMeta (): SitkaMeta {
 }
 ```
 
-```typescript
+```ts
 public createStore (appstoreCreator?: AppStoreCreator): Store<{}> | null {
     if (!!appstoreCreator) {
         const store = appstoreCreator(this.createSitkaMeta());
@@ -113,13 +113,13 @@ public createStore (appstoreCreator?: AppStoreCreator): Store<{}> | null {
 }
 ```
 
-```typescript
+```ts
 public getModules (): MODULES {
     return this.registeredModules;
 }
 ```
 
-```typescript
+```ts
 public register<SITKA_MODULE extends SitkaModule<ModuleState, MODULES>> (
     instances: SITKA_MODULE[],
 ): void {
@@ -241,13 +241,13 @@ public register<SITKA_MODULE extends SitkaModule<ModuleState, MODULES>> (
 }
 ```
 
-```typescript
+```ts
 public setDispatch (dispatch: Dispatch): void {
     this.dispatch = dispatch;
 }
 ```
 
-```typescript
+```ts
 private createRoot (): (() => IterableIterator<{}>) {
     const { sagas, forks, registeredModules } = this;
 
@@ -294,7 +294,7 @@ private createRoot (): (() => IterableIterator<{}>) {
 }
 ```
 
-```typescript
+```ts
 private doDispatch (action: Action): void {
     const { dispatch } = this;
 
@@ -306,7 +306,7 @@ private doDispatch (action: Action): void {
 }
 ```
 
-```typescript
+```ts
 private getDefaultState (): {} {
     const modules = this.getModules();
 

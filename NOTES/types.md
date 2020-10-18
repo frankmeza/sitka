@@ -1,4 +1,4 @@
-```typescript
+```ts
 export class SitkaMeta {
     public readonly defaultState: {};
     public readonly middleware: Middleware[];
@@ -8,11 +8,11 @@ export class SitkaMeta {
 }
 ```
 
-```typescript
+```ts
 export type AppStoreCreator = (sitaMeta: SitkaMeta) => Store;
 ```
 
-```typescript
+```ts
 export type GeneratorContext = {
     readonly handlerKey: string;
     readonly fn: CallEffectFn<any>;
@@ -20,17 +20,17 @@ export type GeneratorContext = {
 };
 ```
 
-```typescript
+```ts
 export type ModuleState = {} | undefined | null;
 ```
 
-```typescript
+```ts
 export type PayloadAction = Action & {
     readonly payload?: {};
 };
 ```
 
-```typescript
+```ts
 export type SagaMeta = {
     // tslint:disable-next-line:no-any
     readonly handler: any;
@@ -39,7 +39,7 @@ export type SagaMeta = {
 };
 ```
 
-```typescript
+```ts
 export type SitkaAction = Action & {
     _moduleId: string;
     // tslint:disable-next-line:no-any
@@ -47,27 +47,27 @@ export type SitkaAction = Action & {
 };
 ```
 
-```typescript
+```ts
 export type SitkaModuleAction<T> =
     | Partial<T> & { type: string; payload?: {} }
     | Action;
 ```
 
-```typescript
+```ts
 export type SitkaOptions = {
     readonly log?: boolean;
     readonly sitkaInState?: boolean;
 };
 ```
 
-```typescript
+```ts
 export type SitkaSagaMiddlewareProvider = {
     middleware: SagaMiddleware<{}>;
     activate: () => void;
 };
 ```
 
-```typescript
+```ts
 export type StoreOptions = {
     readonly initialState?: {};
     readonly reducersToCombine?: ReducersMapObject[];

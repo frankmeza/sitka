@@ -1,4 +1,4 @@
-```typescript
+```ts
 export abstract class SitkaModule<MODULE_STATE extends ModuleState, MODULES> {
     public modules: MODULES;
     public abstract defaultState?: MODULE_STATE;
@@ -14,14 +14,14 @@ export abstract class SitkaModule<MODULE_STATE extends ModuleState, MODULES> {
 }
 ```
 
-```typescript
+```ts
 // by default, the redux key is same as the moduleName
 public reduxKey (): string {
     return this.moduleName;
 }
 ```
 
-```typescript
+```ts
 protected createAction (
     v: Partial<MODULE_STATE>,
     usePayload?: boolean,
@@ -45,25 +45,25 @@ protected createAction (
 }
 ```
 
-```typescript
+```ts
 protected setState (state: MODULE_STATE, replace?: boolean): Action {
     return this.createAction(state, replace);
 }
 ```
 
-```typescript
+```ts
 protected resetState (): Action {
     return this.setState(this.defaultState);
 }
 ```
 
-```typescript
+```ts
 protected getState (state: {}): MODULE_STATE {
     return state[this.reduxKey()];
 }
 ```
 
-```typescript
+```ts
 protected *mergeState (partialState: Partial<MODULE_STATE>): {} {
     const currentState = yield select(this.getState);
     const newState = { ...currentState, ...partialState };
@@ -71,7 +71,7 @@ protected *mergeState (partialState: Partial<MODULE_STATE>): {} {
 }
 ```
 
-```typescript
+```ts
 // can be either the action type string, or the module function to watch
 protected createSubscription (
     actionTarget: string | Function,
@@ -96,25 +96,25 @@ protected createSubscription (
 }
 ```
 
-```typescript
+```ts
 public provideMiddleware (): Middleware[] {
     return [];
 }
 ```
 
-```typescript
+```ts
     provideSubscriptions (): SagaMeta[] {
         return [];
     }
 ```
 
-```typescript
+```ts
     provideForks (): CallEffectFn<any>[] {
         return [];
     }
 ```
 
-```typescript
+```ts
 protected *callAsGenerator (fn: Function, ...rest: any[]): {} {
     const generatorContext: GeneratorContext = this.handlerOriginalFunctionMap.get(
         fn,

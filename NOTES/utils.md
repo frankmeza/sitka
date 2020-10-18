@@ -1,4 +1,4 @@
-```typescript
+```ts
 export const createAppStore = (options: StoreOptions): Store => {
     const {
         initialState = {},
@@ -40,17 +40,17 @@ export const createAppStore = (options: StoreOptions): Store => {
 };
 ```
 
-```typescript
+```ts
 export const createStateChangeKey = (module: string) =>
     `module_${module}_change_state`.toUpperCase();
 ```
 
-```typescript
+```ts
 export const createHandlerKey = (module: string, handler: string) =>
     `module_${module}_${snakeCase(handler)}`.toUpperCase();
 ```
 
-```typescript
+```ts
 export const getInstanceMethodNames = (obj: {}, stop: {}) => {
     const array: string[] = [];
     let proto = Object.getPrototypeOf(obj);
@@ -71,7 +71,7 @@ export const getInstanceMethodNames = (obj: {}, stop: {}) => {
 };
 ```
 
-```typescript
+```ts
 const hasMethod = (obj: {}, name: string) => {
     const desc = Object.getOwnPropertyDescriptor(obj, name);
     return !!desc && typeof desc.value === "function";
