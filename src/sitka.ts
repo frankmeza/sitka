@@ -30,19 +30,16 @@ import {
 } from "./utils";
 
 export class Sitka<MODULES = {}> {
-    private forks: CallEffectFn<any>[] = [];
-
     public handlerOriginalFunctionMap = new Map<Function, GeneratorContext>();
-
-    private middlewareToAdd: Middleware[] = [];
-    // tslint:disable-next-line:no-any
-    private reducersToCombine: ReducersMapObject = {};
-    // tslint:disable-next-line:no-any
-    private sagas: SagaMeta[] = [];
 
     protected registeredModules: MODULES;
 
     private dispatch?: Dispatch;
+    // tslint:disable-next-line:no-any
+    private forks: CallEffectFn<any>[] = [];
+    private middlewareToAdd: Middleware[] = [];
+    private reducersToCombine: ReducersMapObject = {};
+    private sagas: SagaMeta[] = [];
     private sitkaOptions: SitkaOptions;
 
     constructor (sitkaOptions?: SitkaOptions) {
@@ -344,7 +341,6 @@ export {
     createHandlerKey,
     createStateChangeKey,
     getInstanceMethodNames,
-
     // types
     AppStoreCreator,
     GeneratorContext,
