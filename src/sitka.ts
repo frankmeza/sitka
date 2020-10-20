@@ -228,20 +228,20 @@ export class Sitka<MODULES = {}> {
                     const newState: ModuleState = Object.keys(action)
                         .filter(key => key !== "type")
                         .reduce((acc, key) => {
-                            const val = action[key];
+                            const value = action[key];
 
                             if (key === changeKey) {
-                                return val;
+                                return value;
                             }
 
-                            if (val === null || typeof val === "undefined") {
+                            if (value === null || value === undefined) {
                                 return Object.assign(acc, {
                                     [key]: null,
                                 });
                             }
 
                             return Object.assign(acc, {
-                                [key]: val,
+                                [key]: value,
                             });
                         }, Object.assign({}, state)) as ModuleState;
 
