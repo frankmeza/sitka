@@ -54,10 +54,10 @@ export const createAppStore = (options: StoreOptions): Store => {
 };
 
 export const createStateChangeKey = (module: string) =>
-    `module_${module}_change_state`.toUpperCase();
+    `${module}_module_change_state`.toUpperCase();
 
 export const createHandlerKey = (module: string, handler: string) =>
-    `module_${module}_${snakeCase(handler)}`.toUpperCase();
+    `${module}_module_${snakeCase(handler)}`.toUpperCase();
 
 export const getInstanceMethodNames = (obj: {}, stop: {}) => {
     const array: string[] = [];
