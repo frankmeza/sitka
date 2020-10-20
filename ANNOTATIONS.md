@@ -609,6 +609,12 @@ private getDefaultState (): {} {
 }
 ```
 
+### `private`
+
+This method returns the default state of all registered modules, as a store.
+<!-- 
+The modules are mapped into an array from the modules map, returned from `this.getModules()`.  -->
+
 <!-- END: SITKA -->
 
 <!-- BEGIN: SITKA_MODULE -->
