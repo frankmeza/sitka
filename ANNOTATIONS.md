@@ -10,7 +10,7 @@ export class SitkaMeta {
     public readonly defaultState: {};
     public readonly middleware: Middleware[];
     public readonly reducersToCombine: ReducersMapObject;
-    public readonly sagaRoot: (() => IterableIterator<{}>);
+    public readonly sagaRoot: () => IterableIterator<{}>;
     public readonly sagaProvider: () => SitkaSagaMiddlewareProvider;
 }
 ```
@@ -101,11 +101,9 @@ export type SitkaOptions = {
 
 ### `readonly log?: boolean`
 
-This key gives the developer the options of seeing the Redux logs in the browser console.
+This key gives the developer the options of seeing the Redux logs in the browser console, by setting it to `{ log: true }`.
 
 ### `readonly sitkaInState?: boolean;`
-
-This key in not being used in code currently.
 
 ---
 
@@ -187,8 +185,12 @@ export const createAppStore = (options: StoreOptions): Store => {
 
 ```ts
 export const createStateChangeKey = (module: string) =>
-    `module_${module}_change_state`.toUpperCase();
+    `${module}_module_change_state`.toUpperCase();
 ```
+
+// todo
+
+This is used in `SitkaModule.createAction` to create a `type` for use in a Redux action. 
 
 ---
 
@@ -691,6 +693,12 @@ protected resetState (): Action {
     return this.setState(this.defaultState);
 }
 ```
+
+### `protected resetState()`
+
+This function resets a module's state back to its default, and can only be called within the module itself.  
+
+So, in order to provide a public API to `resetState`, you would have to wrap the function call with a `handle*` method, ex. `handleResetModuleState`, to be able to pass this function into a UI component.
 
 ---
 
