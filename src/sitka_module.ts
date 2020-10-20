@@ -38,25 +38,26 @@ export abstract class SitkaModule<MODULE_STATE extends ModuleState, MODULES> {
     }
 
     protected createAction (
-        v: Partial<MODULE_STATE>,
+        payload: Partial<MODULE_STATE>,
         usePayload?: boolean,
     ): SitkaModuleAction<MODULE_STATE> {
         const type = createStateChangeKey(this.reduxKey());
 
-        if (!v) {
+        if (!payload) {
             return { type, [type]: null };
         }
 
-        if (typeof v !== "object") {
-            return { type, [type]: v };
+        if (typeof payload !== "object") {
+            return { type, [type]: payload };
         } else {
             if (usePayload) {
                 return {
                     type,
-                    payload: v,
+                    payload,
                 };
             }
-            return Object.assign({ type }, v);
+
+            return Object.assign({ type }, payload);
         }
     }
 
