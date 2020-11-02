@@ -51,14 +51,16 @@ export class Sitka<MODULES = {}> {
     }
 
     public createSitkaMeta (): SitkaMeta {
+        const { sitkaOptions } = this;
+        const { sitkaInState } = sitkaOptions;
         // by default, we include sitka object in the meta
         const includeSitka =
-            // if no options, or
-            !this.sitkaOptions ||
-            // if options were provided, but sitkaInState is not defined, or
-            this.sitkaOptions.sitkaInState === undefined ||
-            // if sitkaInState is defined, and is not explicitly set, then don't include it
-            this.sitkaOptions.sitkaInState !== false;
+            // IF no options exist, OR
+            !sitkaOptions ||
+            // IF options were provided, BUT sitkaInState is not defined, OR
+            sitkaInState === undefined ||
+            // IF sitkaInState is defined, AND is NOT explicitly set, then don't include it
+            sitkaInState !== false;
 
         const includeLogging = !!this.sitkaOptions && this.sitkaOptions.log;
 
