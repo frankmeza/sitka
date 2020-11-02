@@ -18,7 +18,7 @@ Sitka makes it possible to define and manage a piece of the Redux store convenie
 
 Create an instance of the module manager using its constructor:
 
-```typescript
+```ts
 const sitka = new Sitka<AppModules>()
 ```
 
@@ -26,7 +26,7 @@ The library needs to know the type of your modules, hence providing the type par
 
 You can register you modules via a simple register method on the sitka instance:
 
-```typescript
+```ts
 sitka.register([
     new ColorModule(),
 ])
@@ -37,7 +37,7 @@ sitka.register([
 Sitka Redux Modules are plain Typescript classes which expose Redux Sagas as public methods. 
 Here is a simple example, a module which tracks the `color` state in your Redux state.
 
-```typescript
+```ts
 import { AppModules } from "../../index"
 import { put } from "Redux-saga/effects"
 import { SitkaModule } from "olio-sitka"
@@ -56,7 +56,7 @@ export class ColorModule extends SitkaModule<ColorState, AppModules> {
 
 This simple module can be invoked via plain calls inside of your presentational components:
 
-```typescript
+```ts
 sitka.handleColor("red")
 ```
 
@@ -70,7 +70,7 @@ The module manager can be used to integrate with an existing Redux store, or to 
 
 ### Creating a Sitka managed store
 
-```typescript
+```ts
 const sitka = new Sitka<AppModules>()
 sitka.register([ 
     new ColorModule(),
@@ -89,7 +89,7 @@ See the wiki (https://github.com/olioapps/sitka/wiki/Adding-Sitka-to-a-Redux-sto
 ### Basic usage
 After you create a Sitka managed or integrated store, you can begin to change its state by calling methods on the modules. For example:
 
-```typescript
+```ts
 // create a sitka instance and register a module
 const sitka = new Sitka<{readonly color: ColorModule}>()
 sitka.register([ new ColorModule() ])
