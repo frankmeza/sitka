@@ -111,7 +111,7 @@ console.log(store.getState())
 ### React web usage
 Using Sitka modules inside React applications is easy! Check out https://github.com/olioapps/sitka/wiki/React-web-usage for an example. You can also head over to https://github.com/frankmeza/sitka-counter-ts for an example of a simple repo using Sitka modules.
 
-===
+---
 
 <sub><a name="top_of_page">@top_of_page</a></sub>  
 
@@ -280,6 +280,10 @@ export type SitkaOptions = {
 This key gives the developer the options of seeing the Redux logs in the browser console, by setting it to `{ log: true }`.
 
 ### `readonly sitkaInState?: boolean;`
+
+This key is checked for in `Sitka createSitkaMeta -> SitkaMeta` and is responsible for including Sitka in your Redux store (`true`) or not (`false`).  
+
+If `true`, then the Sitka class ITSELF is included as `__sitka__` in the method's returned object, in both `defaultState` and `reducersToCombine` keys.  
 
 ---
 
