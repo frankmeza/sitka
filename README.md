@@ -483,55 +483,55 @@ export class Sitka<MODULES = {}> {
 
 ```ts
 public createSitkaMeta (): SitkaMeta {
-        const { sitkaOptions = defaultSitkaOptions } = this;
-        // the default values are both false
-        const { sitkaInState, useLogger } = sitkaOptions;
+    const { sitkaOptions = defaultSitkaOptions } = this;
+    // the default values are both false
+    const { sitkaInState, useLogger } = sitkaOptions;
 
-        const sagaRoot = this.createRoot();
+    const sagaRoot = this.createRoot();
 
-        const defaultState = {
-            ...this.getDefaultState(),
-            __sitka__:
-                sitkaInState ? this :
-                undefined,
-        };
+    const defaultState = {
+        ...this.getDefaultState(),
+        __sitka__:
+            sitkaInState ? this :
+            undefined,
+    };
 
-        const middleware =
-            useLogger ? [
-                ...this.middlewareToAdd,
-                createLogger({
-                    stateTransformer: (state: {}) => state,
-                }),
-            ] :
-            this.middlewareToAdd;
+    const middleware =
+        useLogger ? [
+            ...this.middlewareToAdd,
+            createLogger({
+                stateTransformer: (state: {}) => state,
+            }),
+        ] :
+        this.middlewareToAdd;
 
-        const sitkaReducer = (state: this | null = null): this | null => state;
+    const sitkaReducer = (state: this | null = null): this | null => state;
 
-        const reducersToCombine = {
-            ...this.reducersToCombine,
-            __sitka__:
-                sitkaInState ? sitkaReducer :
-                undefined,
-        };
+    const reducersToCombine = {
+        ...this.reducersToCombine,
+        __sitka__:
+            sitkaInState ? sitkaReducer :
+            undefined,
+    };
 
-        const sagaProvider = (): SitkaSagaMiddlewareProvider => {
-            const middleware = createSagaMiddleware<{}>();
-
-            return {
-                middleware,
-                activate: () => {
-                    middleware.run(sagaRoot);
-                },
-            };
-        };
+    const sagaProvider = (): SitkaSagaMiddlewareProvider => {
+        const middleware = createSagaMiddleware<{}>();
 
         return {
-            defaultState,
             middleware,
-            reducersToCombine,
-            sagaRoot,
-            sagaProvider,
+            activate: () => {
+                middleware.run(sagaRoot);
+            },
         };
+    };
+
+    return {
+        defaultState,
+        middleware,
+        reducersToCombine,
+        sagaRoot,
+        sagaProvider,
+    };
     }
 }
 ```
