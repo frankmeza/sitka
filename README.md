@@ -146,9 +146,24 @@ Using Sitka modules inside React applications is easy! Check out https://github.
 - [sitka_method_create_store](#sitka_method_create_store)
 - [sitka_method_get_modules](#sitka_method_get_modules)
 - [sitka_method_register](#sitka_method_register)
+- [sitka_method_set_dispatch](#sitka_method_set_dispatch)
 - [sitka_method_create_root](#sitka_method_create_root)
 - [sitka_method_do_dispatch](#sitka_method_do_dispatch)
 - [sitka_method_get_default_state](#sitka_method_get_default_state)
+
+### Class SitkaModule
+
+- [sitke_module_method_redux_key](#sitke_module_method_redux_key)
+- [sitka_module_method_create_action](#sitka_module_method_create_action)
+- [sitka_module_method_set_state](#sitka_module_method_set_state)
+- [sitka_module_method_reset_state](#sitka_module_method_reset_state)
+- [sitka_module_method_get_state](#sitka_module_method_get_state)
+- [sitka_module_method_merge_state](#sitka_module_method_merge_state)
+- [sitka_module_method_create_subscription](#sitka_module_method_create_subscription)
+- [sitka_module_method_provide_middleware](#sitka_module_method_provide_middleware)
+- [sitka_module_method_provide_subscriptions](#sitka_module_method_provide_subscriptions)
+- [sitka_module_method_provide_forks](#sitka_module_method_provide_forks)
+- [sitka_module_method_call_as_generator](#sitka_module_method_call_as_generator)
 
 <!-- BEGIN: TYPES -->
   
@@ -564,6 +579,8 @@ public createSitkaMeta (): SitkaMeta {
 }
 ```
 
+<sub><a name="sitka_method_create_sitka_meta">@sitka_method_create_sitka_meta</a></sub>
+
 `createSitkaMeta` uses a `SitkaOptions` object, either passed in (custom) or the default, and uses these boolean values to:
 
 - use the Redux logger or not,
@@ -605,6 +622,8 @@ Thankfully this is a very literally named property, and is a `ReducersMapObject`
 
 ---
 
+<sub><a name="sitka_method_create_store">@sitka_method_create_store</a></sub>
+
 ## `Sitka method` createStore
 
 ```ts
@@ -641,6 +660,8 @@ public createStore (appstoreCreator?: AppStoreCreator): Store<{}> | null {
 
 ---
 
+<sub><a name="sitka_method_get_modules">@sitka_method_get_modules</a></sub>
+
 ## `Sitka method` getModules
 
 ```ts
@@ -652,6 +673,8 @@ public getModules (): MODULES {
 <sub>[go back to top](#top_of_page)</sub>  
 
 ---
+
+<sub><a name="sitka_method_register">@sitka_method_register</a></sub>
 
 ## `Sitka method` register
 
@@ -781,6 +804,8 @@ public register<SITKA_MODULE extends SitkaModule<ModuleState, MODULES>> (
 
 ---
 
+<sub><a name="sitka_method_set_dispatch">@sitka_method_set_dispatch</a></sub>
+
 ## `Sitka method` setDispatch
 
 ```ts
@@ -792,6 +817,8 @@ public setDispatch (dispatch: Dispatch): void {
 <sub>[go back to top](#top_of_page)</sub>  
 
 ---
+
+<sub><a name="sitka_method_create_root">@sitka_method_create_root</a></sub>
 
 ## `Sitka method` createRoot
 
@@ -846,6 +873,8 @@ private createRoot (): (() => IterableIterator<{}>) {
 
 ---
 
+<sub><a name="sitka_method_do_dispatch">@sitka_method_do_dispatch</a></sub>
+
 ## `Sitka method` doDispatch
 
 ```ts
@@ -863,6 +892,8 @@ private doDispatch (action: Action): void {
 <sub>[go back to top](#top_of_page)</sub>  
 
 ---
+
+<sub><a name="sitka_method_get_default_state">@sitka_method_get_default_state</a></sub>
 
 ## `Sitka method` getDefaultState
 
@@ -917,6 +948,8 @@ export abstract class SitkaModule<MODULE_STATE extends ModuleState, MODULES> {
 
 ---
 
+<sub><a name="sitke_module_method_redux_key">@sitke_module_method_redux_key</a></sub>
+
 ## `SitkaModule method` reduxKey
 
 ```ts
@@ -929,6 +962,8 @@ public reduxKey (): string {
 <sub>[go back to top](#top_of_page)</sub>  
 
 ---
+
+<sub><a name="sitka_module_method_create_action">@sitka_module_method_create_action</a></sub>
 
 ## `SitkaModule method` createAction
 
@@ -962,6 +997,8 @@ protected createAction (
 
 ---
 
+<sub><a name="sitka_module_method_set_state">@sitka_module_method_set_state</a></sub>
+
 ## `SitkaModule method` setState
 
 ```ts
@@ -973,6 +1010,8 @@ protected setState (state: MODULE_STATE, replace?: boolean): Action {
 <sub>[go back to top](#top_of_page)</sub>  
 
 ---
+
+<sub><a name="sitka_module_method_reset_state">@sitka_module_method_reset_state</a></sub>
 
 ## `SitkaModule method` resetState
 
@@ -992,6 +1031,8 @@ So, in order to provide a public API to `resetState`, you would have to wrap the
 
 ---
 
+<sub><a name="sitka_module_method_get_state">@sitka_module_method_get_state</a></sub>
+
 ## `SitkaModule method` getState
 
 ```ts
@@ -1003,6 +1044,8 @@ protected getState (state: {}): MODULE_STATE {
 <sub>[go back to top](#top_of_page)</sub>  
 
 ---
+
+<sub><a name="sitka_module_method_merge_state">@sitka_module_method_merge_state</a></sub>
 
 ## `SitkaModule method` *mergeState, generator function
 
@@ -1017,6 +1060,8 @@ protected *mergeState (partialState: Partial<MODULE_STATE>): {} {
 <sub>[go back to top](#top_of_page)</sub>  
 
 ---
+
+<sub><a name="sitka_module_method_create_subscription">@sitka_module_method_create_subscription</a></sub>
 
 ## `SitkaModule method` createSubscription
 
@@ -1050,6 +1095,8 @@ protected createSubscription (
 
 ---
 
+<sub><a name="sitka_module_method_provide_middleware">@sitka_module_method_provide_middleware</a></sub>
+
 ## `SitkaModule method` provideMiddleware
 
 ```ts
@@ -1061,6 +1108,8 @@ public provideMiddleware (): Middleware[] {
 <sub>[go back to top](#top_of_page)</sub>  
 
 ---
+
+<sub><a name="sitka_module_method_provide_subscriptions">@sitka_module_method_provide_subscriptions</a></sub>
 
 ## `SitkaModule method` provideSubscriptions
 
@@ -1074,6 +1123,8 @@ provideSubscriptions (): SagaMeta[] {
 
 ---
 
+<sub><a name="sitka_module_method_provide_forks">@sitka_module_method_provide_forks</a></sub>
+
 ## `SitkaModule method` provideForks
 
 ```ts
@@ -1085,6 +1136,8 @@ provideForks (): CallEffectFn<any>[] {
 <sub>[go back to top](#top_of_page)</sub>  
 
 ---
+
+<sub><a name="sitka_module_method_call_as_generator">@sitka_module_method_call_as_generator</a></sub>
 
 ## `SitkaModule method` *callAsGenerator, generator function
 
