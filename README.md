@@ -268,22 +268,31 @@ export type SitkaModuleAction<T> =
 
 ```ts
 export type SitkaOptions = {
-    readonly log?: boolean;
-    readonly sitkaInState?: boolean;
+    readonly useLogger: boolean;
+    readonly sitkaInState: boolean;
 };
 ```
 
 <sub>[go back to top](#top_of_page)</sub>  
 
-### `readonly log?: boolean`
+### `readonly useLogger: boolean`
 
 This key gives the developer the options of seeing the Redux logs in the browser console, by setting it to `{ log: true }`.
 
-### `readonly sitkaInState?: boolean;`
+### `readonly sitkaInState: boolean;`
 
 This key is checked for in `Sitka createSitkaMeta -> SitkaMeta` and is responsible for including Sitka in your Redux store (`true`) or not (`false`).  
 
 If `true`, then the Sitka class ITSELF is included as `__sitka__` in the method's returned object, in both `defaultState` and `reducersToCombine` keys.  
+
+The default values for this type are
+
+```ts
+export const defaultSitkaOptions: SitkaOptions = {
+    useLogger: false,
+    sitkaInState: false,
+};
+```
 
 ---
 
