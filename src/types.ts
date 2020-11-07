@@ -48,7 +48,7 @@ export type SitkaModuleAction<T> =
     | Action;
 
 export type SitkaOptions = {
-    readonly log?: boolean;
+    readonly useLogger?: boolean;
     readonly sitkaInState?: boolean;
 };
 

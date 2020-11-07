@@ -455,19 +455,15 @@ const hasMethod = (obj: {}, name: string) => {
 
 ```ts
 export class Sitka<MODULES = {}> {
-    public handlerOriginalFunctionMap = new Map<
-        Function,
-        GeneratorContext
-    >();
+    public handlerOriginalFunctionMap = new Map<Function, GeneratorContext>();
 
     protected registeredModules: MODULES;
 
     private dispatch?: Dispatch;
+    // tslint:disable-next-line:no-any
     private forks: CallEffectFn<any>[] = [];
     private middlewareToAdd: Middleware[] = [];
-    // tslint:disable-next-line:no-any
     private reducersToCombine: ReducersMapObject = {};
-    // tslint:disable-next-line:no-any
     private sagas: SagaMeta[] = [];
     private sitkaOptions: SitkaOptions;
 
@@ -481,71 +477,87 @@ export class Sitka<MODULES = {}> {
 }
 ```
 
-
-
 ---
 
 ## `Sitka method` createSitkaMeta
 
 ```ts
 public createSitkaMeta (): SitkaMeta {
-    // by default, we include sitka object in the meta
-    const includeSitka =
-        // if no options, or
-        !this.sitkaOptions ||
-        // if options were provided, but sitkaInState is not defined, or
-        this.sitkaOptions.sitkaInState === undefined ||
-        // if sitkaInState is defined, and is not explicitly set, then don't include it
-        this.sitkaOptions.sitkaInState !== false;
+        const { sitkaOptions = defaultSitkaOptions } = this;
+        const { sitkaInState, useLogger } = sitkaOptions;
 
-    const includeLogging = !!this.sitkaOptions && this.sitkaOptions.log;
+        const logger: Middleware = createLogger({
+            stateTransformer: (state: {}) => state,
+        });
 
-    const logger: Middleware = createLogger({
-        stateTransformer: (state: {}) => state,
-    });
+        const sagaRoot = this.createRoot();
 
-    const sagaRoot = this.createRoot();
+        const defaultState = {
+            ...this.getDefaultState(),
+            __sitka__:
+                sitkaInState ? this :
+                undefined,
+        };
 
-    const defaultState = {
-        ...this.getDefaultState(),
-        __sitka__:
-            includeSitka ? this :
-            undefined,
-    };
+        const middleware =
+            useLogger ? [...this.middlewareToAdd, logger] :
+            this.middlewareToAdd;
 
-    const middleware =
-        includeLogging ? [...this.middlewareToAdd, logger] :
-        this.middlewareToAdd;
+        const sitkaReducer = (state: this | null = null): this | null => state;
 
-    const sitkaReducer = (state: this | null = null): this | null => state;
+        const reducersToCombine = {
+            ...this.reducersToCombine,
+            __sitka__:
+                sitkaInState ? sitkaReducer :
+                undefined,
+        };
 
-    const reducersToCombine = {
-        ...this.reducersToCombine,
-        __sitka__:
-            includeSitka ? sitkaReducer :
-            undefined,
-    };
+        const sagaProvider = (): SitkaSagaMiddlewareProvider => {
+            const middleware = createSagaMiddleware<{}>();
 
-    const sagaProvider = (): SitkaSagaMiddlewareProvider => {
-        const middleware = createSagaMiddleware<{}>();
+            return {
+                middleware,
+                activate: () => {
+                    middleware.run(sagaRoot);
+                },
+            };
+        };
 
         return {
+            defaultState,
             middleware,
-            activate: () => {
-                middleware.run(sagaRoot);
-            },
+            reducersToCombine,
+            sagaRoot,
+            sagaProvider,
         };
-    };
-
-    return {
-        defaultState,
-        middleware,
-        reducersToCombine,
-        sagaRoot,
-        sagaProvider,
-    };
+    }
 }
 ```
+
+This `Sitka` method returns a `SitkaMeta` object:
+
+```ts
+{
+    defaultState,
+    middleware,
+    reducersToCombine,
+    sagaRoot,
+    sagaProvider,
+}
+```
+
+### `readonly defaultState`
+
+This is the `defaultState: {}` of the application.  
+It may or may not include `__sitka__`, depending on the variable `sitkaInState` boolean flag of `sitkaOptions` of the `Sitka` class. `// TODO ADD LINK`
+
+### `readonly middleware`  
+
+This is the array of middleware `Middleware[]` on the application as defined in the [Redux library](https://redux.js.org/).
+
+### `readonly reducersToCombine`  
+
+Thankfully this is a very literally named property, and is a `ReducersMapObject` as defined in the [Redux library](https://redux.js.org/). It is an object 
 
 ---
 

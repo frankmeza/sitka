@@ -9,6 +9,7 @@ import {
     ForkEffect,
     CallEffectFn,
 } from "redux-saga/effects";
+import { defaultSitkaOptions } from "./constants";
 
 import { SitkaModule } from "./sitka_module";
 import {
@@ -42,7 +43,7 @@ export class Sitka<MODULES = {}> {
     private sagas: SagaMeta[] = [];
     private sitkaOptions: SitkaOptions;
 
-    constructor (sitkaOptions?: SitkaOptions) {
+    constructor (sitkaOptions: SitkaOptions) {
         this.sitkaOptions = sitkaOptions;
         this.doDispatch = this.doDispatch.bind(this);
         this.createStore = this.createStore.bind(this);
@@ -51,18 +52,8 @@ export class Sitka<MODULES = {}> {
     }
 
     public createSitkaMeta (): SitkaMeta {
-        const { sitkaOptions } = this;
-        const { sitkaInState } = sitkaOptions;
-        // by default, we include sitka object in the meta
-        const includeSitka =
-            // IF no options exist, OR
-            !sitkaOptions ||
-            // IF options were provided, BUT sitkaInState is not defined, OR
-            sitkaInState === undefined ||
-            // IF sitkaInState is defined, AND is NOT explicitly set, then don't include it
-            sitkaInState !== false;
-
-        const includeLogging = !!this.sitkaOptions && this.sitkaOptions.log;
+        const { sitkaOptions = defaultSitkaOptions } = this;
+        const { sitkaInState, useLogger } = sitkaOptions;
 
         const logger: Middleware = createLogger({
             stateTransformer: (state: {}) => state,
@@ -73,12 +64,12 @@ export class Sitka<MODULES = {}> {
         const defaultState = {
             ...this.getDefaultState(),
             __sitka__:
-                includeSitka ? this :
+                sitkaInState ? this :
                 undefined,
         };
 
         const middleware =
-            includeLogging ? [...this.middlewareToAdd, logger] :
+            useLogger ? [...this.middlewareToAdd, logger] :
             this.middlewareToAdd;
 
         const sitkaReducer = (state: this | null = null): this | null => state;
@@ -86,7 +77,7 @@ export class Sitka<MODULES = {}> {
         const reducersToCombine = {
             ...this.reducersToCombine,
             __sitka__:
-                includeSitka ? sitkaReducer :
+                sitkaInState ? sitkaReducer :
                 undefined,
         };
 
