@@ -294,6 +294,8 @@ export const defaultSitkaOptions: SitkaOptions = {
 };
 ```
 
+<sub>[go back to top](#top_of_page)</sub>  
+
 ---
 
 <sub><a name="type_sitkasagamiddlewareprovider">@type_sitkasagamiddlewareprovider</a></sub>
@@ -306,6 +308,8 @@ export type SitkaSagaMiddlewareProvider = {
     activate: () => void;
 };
 ```
+
+<sub>[go back to top](#top_of_page)</sub>  
 
 ---
 
@@ -323,6 +327,10 @@ export type StoreOptions = {
     readonly log?: boolean;
 };
 ```
+
+<sub>[go back to top](#top_of_page)</sub>  
+
+---
 
 <!-- END: TYPES -->
 
@@ -387,11 +395,9 @@ export const createStateChangeKey = (module: string) =>
     `${module}_module_change_state`.toUpperCase();
 ```
 
-<sub>[go back to top](#top_of_page)</sub>  
-
-// todo
-
 This is used in `SitkaModule.createAction` to create a `type` for use in a Redux action. 
+
+<sub>[go back to top](#top_of_page)</sub>  
 
 ---
 
@@ -454,9 +460,9 @@ const hasMethod = (obj: {}, name: string) => {
 
 <!-- END: UTILS -->
 
-# Sitka class
-
 <!-- BEGIN: SITKA -->
+
+<sub><a name="class_sitka">@class_sitka</a></sub>
 
 ## `class` Sitka
 
@@ -485,6 +491,8 @@ export class Sitka<MODULES = {}> {
     }
 }
 ```
+
+<sub>[go back to top](#top_of_page)</sub>  
 
 ---
 
@@ -582,6 +590,8 @@ This is the array of middleware `Middleware[]` on the application as defined in 
 
 Thankfully this is a very literally named property, and is a `ReducersMapObject` as defined in the [Redux library](https://redux.js.org/). It is an object 
 
+<sub>[go back to top](#top_of_page)</sub>  
+
 ---
 
 ## `Sitka method` createStore
@@ -616,6 +626,8 @@ public createStore (appstoreCreator?: AppStoreCreator): Store<{}> | null {
 }
 ```
 
+<sub>[go back to top](#top_of_page)</sub>  
+
 ---
 
 ## `Sitka method` getModules
@@ -625,6 +637,8 @@ public getModules (): MODULES {
     return this.registeredModules;
 }
 ```
+
+<sub>[go back to top](#top_of_page)</sub>  
 
 ---
 
@@ -752,6 +766,8 @@ public register<SITKA_MODULE extends SitkaModule<ModuleState, MODULES>> (
 }
 ```
 
+<sub>[go back to top](#top_of_page)</sub>  
+
 ---
 
 ## `Sitka method` setDispatch
@@ -761,6 +777,8 @@ public setDispatch (dispatch: Dispatch): void {
     this.dispatch = dispatch;
 }
 ```
+
+<sub>[go back to top](#top_of_page)</sub>  
 
 ---
 
@@ -813,6 +831,8 @@ private createRoot (): (() => IterableIterator<{}>) {
 }
 ```
 
+<sub>[go back to top](#top_of_page)</sub>  
+
 ---
 
 ## `Sitka method` doDispatch
@@ -828,6 +848,8 @@ private doDispatch (action: Action): void {
     }
 }
 ```
+
+<sub>[go back to top](#top_of_page)</sub>  
 
 ---
 
@@ -880,6 +902,8 @@ export abstract class SitkaModule<MODULE_STATE extends ModuleState, MODULES> {
 }
 ```
 
+<sub>[go back to top](#top_of_page)</sub>  
+
 ---
 
 ## `SitkaModule method` reduxKey
@@ -890,6 +914,8 @@ public reduxKey (): string {
     return this.moduleName;
 }
 ```
+
+<sub>[go back to top](#top_of_page)</sub>  
 
 ---
 
@@ -921,6 +947,8 @@ protected createAction (
 }
 ```
 
+<sub>[go back to top](#top_of_page)</sub>  
+
 ---
 
 ## `SitkaModule method` setState
@@ -930,6 +958,8 @@ protected setState (state: MODULE_STATE, replace?: boolean): Action {
     return this.createAction(state, replace);
 }
 ```
+
+<sub>[go back to top](#top_of_page)</sub>  
 
 ---
 
@@ -947,6 +977,8 @@ This function resets a module's state back to its default, and can only be calle
 
 So, in order to provide a public API to `resetState`, you would have to wrap the function call with a `handle*` method, ex. `handleResetModuleState`, to be able to pass this function into a UI component.
 
+<sub>[go back to top](#top_of_page)</sub>  
+
 ---
 
 ## `SitkaModule method` getState
@@ -956,6 +988,8 @@ protected getState (state: {}): MODULE_STATE {
     return state[this.reduxKey()];
 }
 ```
+
+<sub>[go back to top](#top_of_page)</sub>  
 
 ---
 
@@ -968,6 +1002,8 @@ protected *mergeState (partialState: Partial<MODULE_STATE>): {} {
     yield put(this.setState(newState));
 }
 ```
+
+<sub>[go back to top](#top_of_page)</sub>  
 
 ---
 
@@ -999,6 +1035,8 @@ protected createSubscription (
 }
 ```
 
+<sub>[go back to top](#top_of_page)</sub>  
+
 ---
 
 ## `SitkaModule method` provideMiddleware
@@ -1008,6 +1046,8 @@ public provideMiddleware (): Middleware[] {
     return [];
 }
 ```
+
+<sub>[go back to top](#top_of_page)</sub>  
 
 ---
 
@@ -1019,6 +1059,8 @@ provideSubscriptions (): SagaMeta[] {
 }
 ```
 
+<sub>[go back to top](#top_of_page)</sub>  
+
 ---
 
 ## `SitkaModule method` provideForks
@@ -1028,6 +1070,8 @@ provideForks (): CallEffectFn<any>[] {
     return [];
 }
 ```
+
+<sub>[go back to top](#top_of_page)</sub>  
 
 ---
 
@@ -1046,5 +1090,9 @@ return yield apply(
     );
 }
 ```
+
+<sub>[go back to top](#top_of_page)</sub>  
+
+---
 
 <!-- END: SITKA_MODULE -->
