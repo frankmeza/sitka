@@ -119,31 +119,42 @@ Using Sitka modules inside React applications is easy! Check out https://github.
 
 ### Types
 
-- [class_sitkameta](#class_sitkameta)
-- [type_appstorecreator](#type_appstorecreator)
-- [type_generatorcontext](#type_generatorcontext)
-- [type_modulestate](#type_modulestate)
-- [type_payloadaction](#type_payloadaction)
+- [class_sitka_meta](#class_sitka_meta)
+- [type_app_store_creator](#type_app_store_creator)
+- [type_generator_context](#type_generator_context)
+- [type_module_state](#type_module_state)
+- [type_payload_action](#type_payload_action)
 - [type_sagameta](#type_sagameta)
-- [type_sitkaaction](#type_sitkaaction)
-- [type_sitkamoduleaction](#type_sitkamoduleaction)
-- [type_sitkaoptions](#type_sitkaoptions)
-- [type_sitkasagamiddlewareprovider](#type_sitkasagamiddlewareprovider)
-- [type_storeoptions](#type_storeoptions)
+- [type_sitka_action](#type_sitka_action)
+- [type_sitka_module_action](#type_sitka_module_action)
+- [type_sitka_options](#type_sitka_options)
+- [type_sitka_saga_middleware_provider](#type_sitka_saga_middleware_provider)
+- [type_store_options](#type_store_options)
 
 ### Functions
 
-- [function_createappstore](#function_createappstore)
-- [function_createstagechangekey](#function_createstagechangekey)
-- [function_createhandlerkey](#function_createhandlerkey)
-- [function_getinstancemethodnames](#function_getinstancemethodnames)
+- [function_create_app_store](#function_create_app_store)
+- [function_create_stage_change_key](#function_create_stage_change_key)
+- [function_create_handler_key](#function_create_handler_key)
+- [function_get_instance_method_names](#function_get_instance_method_names)
 - [function_hasmethod](#function_hasmethod)
+
+### Class Sitka
+
+- [class_sitka](#class_sitka)
+- [sitka_method_create_sitka_meta](#sitka_method_create_sitka_meta)
+- [sitka_method_create_store](#sitka_method_create_store)
+- [sitka_method_get_modules](#sitka_method_get_modules)
+- [sitka_method_register](#sitka_method_register)
+- [sitka_method_create_root](#sitka_method_create_root)
+- [sitka_method_do_dispatch](#sitka_method_do_dispatch)
+- [sitka_method_get_default_state](#sitka_method_get_default_state)
 
 <!-- BEGIN: TYPES -->
   
 # Types in Sitka 
 
-<sub><a name="class_sitkameta">@class_sitkameta</a></sub>
+<sub><a name="class_sitka_meta">@class_sitka_meta</a></sub>
   
 ## `class` SitkaMeta
 
@@ -161,7 +172,7 @@ export class SitkaMeta {
 
 ---
 
-<sub><a name="type_appstorecreator">@type_appstorecreator</a></sub>
+<sub><a name="type_app_store_creator">@type_app_store_creator</a></sub>
 
 ## `type` AppStoreCreator
 
@@ -173,7 +184,7 @@ export type AppStoreCreator = (sitaMeta: SitkaMeta) => Store;
 
 ---
 
-<sub><a name="type_generatorcontext">@type_generatorcontext</a></sub>
+<sub><a name="type_generator_context">@type_generator_context</a></sub>
 
 ## `type` GeneratorContext
 
@@ -189,7 +200,7 @@ export type GeneratorContext = {
 
 ---
 
-<sub><a name="type_modulestate">@type_modulestate</a></sub>
+<sub><a name="type_module_state">@type_module_state</a></sub>
 
 ## `type` ModuleState
 
@@ -201,7 +212,7 @@ export type ModuleState = {} | undefined | null;
 
 ---
 
-<sub><a name="type_payloadaction">@type_payloadaction</a></sub>
+<sub><a name="type_payload_action">@type_payload_action</a></sub>
 
 ## `type` PayloadAction
 
@@ -232,7 +243,7 @@ export type SagaMeta = {
 
 ---
 
-<sub><a name="type_sitkaaction">@type_sitkaaction</a></sub>
+<sub><a name="type_sitka_action">@type_sitka_action</a></sub>
 
 ## `type` SitkaAction
 
@@ -248,7 +259,7 @@ export type SitkaAction = Action & {
 
 ---
 
-<sub><a name="type_sitkamoduleaction">@type_sitkamoduleaction</a></sub>
+<sub><a name="type_sitka_module_action">@type_sitka_module_action</a></sub>
 
 ## `type` SitkaModuleAction
 
@@ -262,7 +273,7 @@ export type SitkaModuleAction<T> =
 
 ---
 
-<sub><a name="type_sitkaoptions">@type_sitkaoptions</a></sub>
+<sub><a name="type_sitka_options">@type_sitka_options</a></sub>
 
 ## `type` SitkaOptions
 
@@ -298,7 +309,7 @@ export const defaultSitkaOptions: SitkaOptions = {
 
 ---
 
-<sub><a name="type_sitkasagamiddlewareprovider">@type_sitkasagamiddlewareprovider</a></sub>
+<sub><a name="type_sitka_saga_middleware_provider">@type_sitka_saga_middleware_provider</a></sub>
 
 ## `type` SitkaSagaMiddlewareProvider
 
@@ -313,7 +324,7 @@ export type SitkaSagaMiddlewareProvider = {
 
 ---
 
-<sub><a name="type_storeoptions">@type_storeoptions</a></sub>
+<sub><a name="type_store_options">@type_store_options</a></sub>
 
 ## `type` StoreOptions
 
@@ -336,7 +347,7 @@ export type StoreOptions = {
 
 <!-- BEGIN: UTILS -->
 
-<sub><a name="function_createappstore">@function_createappstore</a></sub>
+<sub><a name="function_create_app_store">@function_create_app_store</a></sub>
 
 ## `function` createAppStore
 
@@ -386,7 +397,7 @@ export const createAppStore = (options: StoreOptions): Store => {
 
 ---
 
-<sub><a name="function_createstagechangekey">@function_createstagechangekey</a></sub>
+<sub><a name="function_create_stage_change_key">@function_create_stage_change_key</a></sub>
 
 ## `function` createStateChangeKey
 
@@ -401,7 +412,7 @@ This is used in `SitkaModule.createAction` to create a `type` for use in a Redux
 
 ---
 
-<sub><a name="function_createhandlerkey">@function_createhandlerkey</a></sub>
+<sub><a name="function_create_handler_key">@function_create_handler_key</a></sub>
 
 ## `function` createHandlerKey
 
@@ -414,7 +425,7 @@ export const createHandlerKey = (module: string, handler: string) =>
 
 ---
 
-<sub><a name="function_getinstancemethodnames">@function_getinstancemethodnames</a></sub>
+<sub><a name="function_get_instance_method_names">@function_get_instance_method_names</a></sub>
 
 ## `function` getInstanceMethodNames
 
