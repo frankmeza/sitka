@@ -53,11 +53,8 @@ export class Sitka<MODULES = {}> {
 
     public createSitkaMeta (): SitkaMeta {
         const { sitkaOptions = defaultSitkaOptions } = this;
+        // the default values are both false
         const { sitkaInState, useLogger } = sitkaOptions;
-
-        const logger: Middleware = createLogger({
-            stateTransformer: (state: {}) => state,
-        });
 
         const sagaRoot = this.createRoot();
 
@@ -69,7 +66,12 @@ export class Sitka<MODULES = {}> {
         };
 
         const middleware =
-            useLogger ? [...this.middlewareToAdd, logger] :
+            useLogger ? [
+                ...this.middlewareToAdd,
+                createLogger({
+                    stateTransformer: (state: {}) => state,
+                }),
+            ] :
             this.middlewareToAdd;
 
         const sitkaReducer = (state: this | null = null): this | null => state;
