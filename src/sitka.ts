@@ -122,7 +122,7 @@ export class Sitka<MODULES = {}> {
                 reducersToCombine: [reducersToCombine],
                 middleware: middleware,
                 sagaRoot: sagaRoot,
-                log: this.sitkaOptions && this.sitkaOptions.log,
+                log: this.sitkaOptions.useLogger,
             });
 
             this.dispatch = store.dispatch;
