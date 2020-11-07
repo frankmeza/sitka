@@ -153,7 +153,8 @@ Using Sitka modules inside React applications is easy! Check out https://github.
 
 ### Class SitkaModule
 
-- [sitke_module_method_redux_key](#sitke_module_method_redux_key)
+- [class_sitka_module](#class_sitka_module)
+- [sitka_module_method_redux_key](#sitka_module_method_redux_key)
 - [sitka_module_method_create_action](#sitka_module_method_create_action)
 - [sitka_module_method_set_state](#sitka_module_method_set_state)
 - [sitka_module_method_reset_state](#sitka_module_method_reset_state)
@@ -521,6 +522,8 @@ export class Sitka<MODULES = {}> {
 <sub>[go back to top](#top_of_page)</sub>  
 
 ---
+
+<sub><a name="sitka_method_create_sitka_meta">@sitka_method_create_sitka_meta</a></sub>
 
 ## `Sitka method` createSitkaMeta
 
@@ -924,6 +927,8 @@ The modules are mapped into an array from the modules map, returned from `this.g
 
 <!-- BEGIN: SITKA_MODULE -->
 
+<sub><a name="class_sitka_module">@class_sitka_module</a></sub>
+
 # SitkaModule class
 
 ## `class` SitkaModule
@@ -948,7 +953,7 @@ export abstract class SitkaModule<MODULE_STATE extends ModuleState, MODULES> {
 
 ---
 
-<sub><a name="sitke_module_method_redux_key">@sitke_module_method_redux_key</a></sub>
+<sub><a name="sitka_module_method_redux_key">@sitka_module_method_redux_key</a></sub>
 
 ## `SitkaModule method` reduxKey
 
