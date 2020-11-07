@@ -484,11 +484,8 @@ export class Sitka<MODULES = {}> {
 ```ts
 public createSitkaMeta (): SitkaMeta {
         const { sitkaOptions = defaultSitkaOptions } = this;
+        // the default values are both false
         const { sitkaInState, useLogger } = sitkaOptions;
-
-        const logger: Middleware = createLogger({
-            stateTransformer: (state: {}) => state,
-        });
 
         const sagaRoot = this.createRoot();
 
@@ -500,7 +497,12 @@ public createSitkaMeta (): SitkaMeta {
         };
 
         const middleware =
-            useLogger ? [...this.middlewareToAdd, logger] :
+            useLogger ? [
+                ...this.middlewareToAdd,
+                createLogger({
+                    stateTransformer: (state: {}) => state,
+                }),
+            ] :
             this.middlewareToAdd;
 
         const sitkaReducer = (state: this | null = null): this | null => state;
@@ -534,7 +536,19 @@ public createSitkaMeta (): SitkaMeta {
 }
 ```
 
-This `Sitka` method returns a `SitkaMeta` object:
+`createSitkaMeta` uses a `SitkaOptions` object, either passed in (custom) or the default, and uses these boolean values to:
+
+- use the Redux logger or not,
+- include Sitka itself in the Redux store for the application
+
+Apart from that:
+
+- the `defaultState` is defined, with or without Sitka
+- middleware is defined, with or without the Redux logger
+- const `reducersToCombine` is defined, with or without SitkaReducer
+- a `sagaProvider` is defined, that returns a new `SagaMiddleware<{}>` as `middleware` as well as an `activate` function, that runs the middleware
+
+Ultimately, this `Sitka` method returns a `SitkaMeta` object:
 
 ```ts
 {
